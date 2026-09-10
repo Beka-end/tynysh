@@ -1,0 +1,23 @@
+# зависимости
+/node_modules
+/.pnp
+.pnp.js
+
+# сборка Next.js
+/.next/
+/out/
+next-env.d.ts
+
+# секреты — НИКОГДА не коммитить
+.env
+.env.local
+.env*.local
+
+# прочее
+.DS_Store
+*.pem
+npm-debug.log*
+yarn-error.log*
+/coverage
+.vercel
+*.tsbuildinfo
