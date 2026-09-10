@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+/* Фирменные цвета и шрифт Tynysh (из прототипа) */
+@theme {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --color-tynysh: #5b4bdb;        /* основной фиолетовый */
+  --color-tynysh-dark: #241f3b;   /* текст */
+  --color-tynysh-muted: #5f5a78;  /* приглушённый текст */
+  --color-tynysh-bg: #f6f3ff;     /* фон экрана */
+  --color-tynysh-soft: #eeeaff;   /* мягкий фиолетовый (плашки) */
+  --color-dos: #fff3dc;           /* пузырь Доса */
+  --color-dos-text: #9a5b00;
+  --color-alarm: #ffe4e1;         /* карточка SOS */
+  --color-alarm-text: #b3261e;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-tynysh-bg);
+  color: var(--color-tynysh-dark);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* убираем стрелки у полей с числами */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
