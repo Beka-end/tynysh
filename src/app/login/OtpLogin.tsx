@@ -5,20 +5,37 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { authErrorToRussian } from "@/lib/errors";
 import { formatPhone, isValidPhone, normalizePhone } from "@/lib/phone";
+import { isValidEmail, normalizeEmail } from "@/lib/email";
+
+/**
+ * Вход по одноразовому коду. Два способа устроены одинаково:
+ * сначала присылаем код на телефон или на почту, потом проверяем его.
+ */
+export type Channel = "phone" | "email";
 
 const inputClass =
   "w-full rounded-xl border border-violet-100 bg-white px-4 py-3 outline-none focus:border-violet-400";
 const buttonClass =
   "w-full rounded-xl bg-tynysh py-3 font-extrabold text-white disabled:opacity-40";
 
-export function PhoneLogin() {
+export function OtpLogin({ channel }: { channel: Channel }) {
   const router = useRouter();
-  const [step, setStep] = useState<"phone" | "code">("phone");
-  const [phone, setPhone] = useState("");
+  const isPhone = channel === "phone";
+
+  const [step, setStep] = useState<"contact" | "code">("contact");
+  const [contact, setContact] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [cooldown, setCooldown] = useState(0);
+
+  // при переключении вкладки начинаем с чистого листа
+  useEffect(() => {
+    setStep("contact");
+    setContact("");
+    setCode("");
+    setError("");
+  }, [channel]);
 
   // таймер «можно запросить код заново»
   useEffect(() => {
@@ -27,13 +44,18 @@ export function PhoneLogin() {
     return () => clearTimeout(t);
   }, [cooldown]);
 
+  const contactOk = isPhone ? isValidPhone(contact) : isValidEmail(contact);
+  const minCodeLength = isPhone ? 4 : 6;
+
   async function sendCode() {
     setBusy(true);
     setError("");
+
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      phone: normalizePhone(phone),
-    });
+    const { error } = isPhone
+      ? await supabase.auth.signInWithOtp({ phone: normalizePhone(contact) })
+      : await supabase.auth.signInWithOtp({ email: normalizeEmail(contact) });
+
     setBusy(false);
 
     if (error) {
@@ -47,12 +69,19 @@ export function PhoneLogin() {
   async function verifyCode() {
     setBusy(true);
     setError("");
+
     const supabase = createClient();
-    const { error } = await supabase.auth.verifyOtp({
-      phone: normalizePhone(phone),
-      token: code,
-      type: "sms",
-    });
+    const { error } = isPhone
+      ? await supabase.auth.verifyOtp({
+          phone: normalizePhone(contact),
+          token: code,
+          type: "sms",
+        })
+      : await supabase.auth.verifyOtp({
+          email: normalizeEmail(contact),
+          token: code,
+          type: "email",
+        });
 
     if (error) {
       setBusy(false);
@@ -65,34 +94,31 @@ export function PhoneLogin() {
     router.refresh();
   }
 
-  if (step === "phone") {
+  if (step === "contact") {
     return (
       <form
         className="space-y-3"
         onSubmit={(e) => {
           e.preventDefault();
-          if (isValidPhone(phone) && !busy) sendCode();
+          if (contactOk && !busy) sendCode();
         }}
       >
         <input
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="+7 7__ ___ __ __"
-          inputMode="tel"
-          autoComplete="tel"
+          value={contact}
+          onChange={(e) => setContact(e.target.value)}
+          placeholder={isPhone ? "+7 7__ ___ __ __" : "почта@example.com"}
+          inputMode={isPhone ? "tel" : "email"}
+          autoComplete={isPhone ? "tel" : "email"}
           className={inputClass}
         />
-        <button
-          type="submit"
-          disabled={!isValidPhone(phone) || busy}
-          className={buttonClass}
-        >
+        <button type="submit" disabled={!contactOk || busy} className={buttonClass}>
           {busy ? "Отправляем…" : "Получить код"}
         </button>
         {error && <ErrorBox text={error} />}
         <p className="text-xs text-tynysh-muted">
-          Пришлём SMS с кодом. Номер никому не показывается — другие видят только
-          твой @юзернейм.
+          {isPhone
+            ? "Пришлём SMS с кодом. Номер никому не показывается — другие видят только твой @юзернейм."
+            : "Пришлём письмо с кодом. Почта никому не показывается — другие видят только твой @юзернейм."}
         </p>
       </form>
     );
@@ -103,22 +129,27 @@ export function PhoneLogin() {
       className="space-y-3"
       onSubmit={(e) => {
         e.preventDefault();
-        if (code.length >= 4 && !busy) verifyCode();
+        if (code.length >= minCodeLength && !busy) verifyCode();
       }}
     >
       <p className="text-sm text-tynysh-muted">
-        Код отправлен на {formatPhone(phone)}.
+        Код отправлен на {isPhone ? formatPhone(contact) : normalizeEmail(contact)}.
+        {!isPhone && " Проверь и папку «Спам»."}
       </p>
       <input
         autoFocus
         value={code}
         onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-        placeholder="Код из SMS"
+        placeholder={isPhone ? "Код из SMS" : "Код из письма"}
         inputMode="numeric"
         autoComplete="one-time-code"
         className={`${inputClass} text-center text-xl tracking-[0.5em]`}
       />
-      <button type="submit" disabled={code.length < 4 || busy} className={buttonClass}>
+      <button
+        type="submit"
+        disabled={code.length < minCodeLength || busy}
+        className={buttonClass}
+      >
         {busy ? "Проверяем…" : "Подтвердить"}
       </button>
       {error && <ErrorBox text={error} />}
@@ -127,13 +158,13 @@ export function PhoneLogin() {
         <button
           type="button"
           onClick={() => {
-            setStep("phone");
+            setStep("contact");
             setCode("");
             setError("");
           }}
           className="text-tynysh-muted underline"
         >
-          Изменить номер
+          {isPhone ? "Изменить номер" : "Изменить почту"}
         </button>
         <button
           type="button"
@@ -144,6 +175,13 @@ export function PhoneLogin() {
           {cooldown > 0 ? `Новый код через ${cooldown} сек` : "Прислать код заново"}
         </button>
       </div>
+
+      {!isPhone && (
+        <p className="text-xs text-tynysh-muted">
+          В письме только ссылка, без цифр? Значит, в шаблон письма в Supabase не
+          добавлена строка с кодом — как это сделать, написано в SETUP.md.
+        </p>
+      )}
     </form>
   );
 }

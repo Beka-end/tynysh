@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { Logo } from "@/components/Logo";
-import { PhoneLogin } from "./PhoneLogin";
+import { LoginTabs } from "./LoginTabs";
 import { SetupHint } from "./SetupHint";
 
 // Страница всегда считается на сервере: она смотрит на куки с сессией.
@@ -26,7 +26,7 @@ export default async function LoginPage() {
           Мессенджер, где есть кому выслушать.
         </p>
 
-        {isSupabaseConfigured ? <PhoneLogin /> : <SetupHint />}
+        {isSupabaseConfigured ? <LoginTabs /> : <SetupHint />}
 
         <p className="mt-6 text-xs leading-relaxed text-[#8A85A3]">
           Дос — помощник для поддержки, а не врач. Если тебе плохо прямо сейчас —

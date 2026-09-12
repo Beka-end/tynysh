@@ -1,4 +1,4 @@
-/** Показывается, пока не заполнен .env.local — чтобы вместо ошибки была инструкция. */
+/** Показывается, пока приложение не видит ключи Supabase — чтобы вместо ошибки была инструкция. */
 export function SetupHint() {
   return (
     <div className="rounded-2xl bg-white p-5 text-sm leading-relaxed shadow-sm">
@@ -11,14 +11,25 @@ export function SetupHint() {
           Открой <b>SQL Editor</b> и выполни файл <code>supabase/schema.sql</code>.
         </li>
         <li>
-          В <b>Project Settings → API</b> скопируй Project URL и ключ <code>anon</code>.
+          В <b>Project Settings → API Keys</b> скопируй <b>Project URL</b> и{" "}
+          <b>Publishable key</b>.
         </li>
         <li>
-          Скопируй файл <code>.env.local.example</code> в <code>.env.local</code> и
-          вставь туда эти два значения.
+          Вставь их под именами <code>NEXT_PUBLIC_SUPABASE_URL</code> и{" "}
+          <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>:
+          <ul className="mt-1 list-disc space-y-0.5 pl-4">
+            <li>
+              на компьютере — в файл <code>.env.local</code>;
+            </li>
+            <li>
+              на Vercel — <b>Settings → Environment Variables</b>, отметив{" "}
+              <b>Production</b>.
+            </li>
+          </ul>
         </li>
         <li>
-          Останови сервер и запусти заново: <code>npm run dev</code>.
+          Перезапусти: на компьютере — заново <code>npm run dev</code>, на Vercel —{" "}
+          <b>Deployments → ⋯ → Redeploy</b>. Ключи подхватываются в момент сборки.
         </li>
       </ol>
       <p className="mt-3 text-xs text-[#8A85A3]">
