@@ -54,7 +54,11 @@ export function OtpLogin({ channel }: { channel: Channel }) {
     const supabase = createClient();
     const { error } = isPhone
       ? await supabase.auth.signInWithOtp({ phone: normalizePhone(contact) })
-      : await supabase.auth.signInWithOtp({ email: normalizeEmail(contact) });
+      : await supabase.auth.signInWithOtp({
+          email: normalizeEmail(contact),
+          // чтобы ссылка из письма вела на этот сайт, а не на адрес по умолчанию
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        });
 
     setBusy(false);
 
@@ -133,8 +137,14 @@ export function OtpLogin({ channel }: { channel: Channel }) {
       }}
     >
       <p className="text-sm text-tynysh-muted">
-        Код отправлен на {isPhone ? formatPhone(contact) : normalizeEmail(contact)}.
-        {!isPhone && " Проверь и папку «Спам»."}
+        {isPhone ? (
+          <>Код отправлен на {formatPhone(contact)}.</>
+        ) : (
+          <>
+            Письмо отправлено на {normalizeEmail(contact)}. Открой его и нажми на
+            ссылку — этого достаточно, вход произойдёт сам. Проверь и папку «Спам».
+          </>
+        )}
       </p>
       <input
         autoFocus
@@ -178,8 +188,8 @@ export function OtpLogin({ channel }: { channel: Channel }) {
 
       {!isPhone && (
         <p className="text-xs text-tynysh-muted">
-          В письме только ссылка, без цифр? Значит, в шаблон письма в Supabase не
-          добавлена строка с кодом — как это сделать, написано в SETUP.md.
+          Если в письме есть шестизначный код — можно ввести его сюда. Если только
+          ссылка — просто нажми на неё в письме.
         </p>
       )}
     </form>

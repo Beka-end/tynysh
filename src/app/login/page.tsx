@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { Logo } from "@/components/Logo";
+import { authErrorToRussian } from "@/lib/errors";
 import { LoginTabs } from "./LoginTabs";
 import { SetupHint } from "./SetupHint";
 
@@ -9,7 +10,14 @@ import { SetupHint } from "./SetupHint";
 export const dynamic = "force-dynamic";
 
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  // Сюда попадаем, если ссылка из письма не сработала.
+  const { error } = await searchParams;
+
   if (isSupabaseConfigured) {
     const supabase = await createClient();
     const {
@@ -25,6 +33,12 @@ export default async function LoginPage() {
         <p className="mt-1 mb-8 text-lg text-tynysh-muted">
           Мессенджер, где есть кому выслушать.
         </p>
+
+        {error && (
+          <div className="mb-4 rounded-xl bg-alarm px-3 py-2 text-sm text-alarm-text">
+            {authErrorToRussian(error)}
+          </div>
+        )}
 
         {isSupabaseConfigured ? <LoginTabs /> : <SetupHint />}
 
