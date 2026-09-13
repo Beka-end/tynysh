@@ -29,9 +29,21 @@ export function PeopleSearch({
   busyId?: string | null;
 }) {
   const [query, setQuery] = useState("");
+  const [blocked, setBlocked] = useState<string[]>([]);
   const [list, setList] = useState<FoundUser[]>([]);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState("");
+
+  // Кого я заблокировал — тех в поиске не показываем.
+  useEffect(() => {
+    const supabase = createClient();
+    void supabase
+      .from("blocks")
+      .select("blocked_id")
+      .then(({ data }) =>
+        setBlocked(((data ?? []) as { blocked_id: string }[]).map((b) => b.blocked_id)),
+      );
+  }, []);
 
   useEffect(() => {
     // Убираем «@» и знаки, которые ломают запрос к базе.
@@ -62,14 +74,14 @@ export function PeopleSearch({
         return;
       }
       setError("");
-      setList((data ?? []) as FoundUser[]);
+      setList(((data ?? []) as FoundUser[]).filter((u) => !blocked.includes(u.id)));
     }, 300);
 
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query, meId]);
+  }, [query, meId, blocked]);
 
   const shortQuery = query.trim().replace(/^@+/, "").length < 2;
 

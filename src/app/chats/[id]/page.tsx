@@ -59,6 +59,18 @@ export default async function ChatPage({
   const partner = members.find((m) => m.user_id !== me.id);
   const isGroup = (chat.type as ChatType) === "group";
 
+  // Заблокировал ли я собеседника (правила базы отдают только мои блокировки).
+  let blocked = false;
+  if (!isGroup && partner) {
+    const { data: block } = await supabase
+      .from("blocks")
+      .select("blocked_id")
+      .eq("user_id", me.id)
+      .eq("blocked_id", partner.user_id)
+      .maybeSingle();
+    blocked = Boolean(block);
+  }
+
   return (
     <ChatRoom
       chatId={id}
@@ -74,6 +86,12 @@ export default async function ChatPage({
       }
       members={members}
       initialMessages={messages}
+      partner={
+        isGroup || !partner
+          ? null
+          : { id: partner.user_id, name: partner.name, handle: partner.handle }
+      }
+      blocked={blocked}
     />
   );
 }

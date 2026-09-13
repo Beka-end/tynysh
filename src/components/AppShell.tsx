@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
+import { LiveNotifications } from "./LiveNotifications";
 
 const TABS = [
   { href: "/chats", label: "Чаты" },
@@ -9,10 +10,12 @@ const TABS = [
 
 /** Общая рамка внутренних экранов: шапка, вкладки и подпись с телефонами помощи. */
 export function AppShell({
+  meId,
   handle,
   active,
   children,
 }: {
+  meId: string;
   handle: string;
   active: string;
   children: React.ReactNode;
@@ -50,6 +53,8 @@ export function AppShell({
           </Link>
         ))}
       </nav>
+
+      <LiveNotifications meId={meId} refreshList withButton />
 
       <div className="flex-1 px-2 pb-4">{children}</div>
 

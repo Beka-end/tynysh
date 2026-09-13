@@ -120,6 +120,39 @@ as $$
   );
 $$;
 
+-- «Я заблокировал этого отправителя?» — тогда его сообщений я не вижу нигде.
+create or replace function public.sender_blocked(sender uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select sender is not null and exists (
+    select 1 from blocks b
+    where b.user_id = auth.uid() and b.blocked_id = sender
+  );
+$$;
+
+-- «В этом личном чате есть блокировка (в любую сторону)?» — тогда писать нельзя.
+-- Группы это не трогает: один человек не может закрыть переписку всей группе.
+create or replace function public.dm_blocked(target_chat uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from chats c
+    join chat_members m on m.chat_id = c.id and m.user_id <> auth.uid()
+    join blocks b on (b.user_id = m.user_id and b.blocked_id = auth.uid())
+                  or (b.user_id = auth.uid() and b.blocked_id = m.user_id)
+    where c.id = target_chat and c.type = 'dm'
+  );
+$$;
+
 create policy "profiles read" on profiles for select using (true);
 create policy "profiles insert own" on profiles for insert with check (auth.uid() = id);
 create policy "profiles update own" on profiles for update using (auth.uid() = id);
@@ -134,9 +167,13 @@ create policy "members update own row" on chat_members for update
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 create policy "members read messages" on messages for select
-  using (public.is_chat_member(chat_id));
+  using (public.is_chat_member(chat_id) and not public.sender_blocked(sender_id));
 create policy "members send messages" on messages for insert
-  with check (sender_id = auth.uid() and public.is_chat_member(chat_id));
+  with check (
+    sender_id = auth.uid()
+    and public.is_chat_member(chat_id)
+    and not public.dm_blocked(chat_id)
+  );
 create policy "sender edits own" on messages for update
   using (sender_id = auth.uid()) with check (sender_id = auth.uid());
 
@@ -274,6 +311,7 @@ as $$
        where fresh.chat_id = c.id
          and fresh.sender_id <> auth.uid()
          and fresh.deleted_at is null
+         and not public.sender_blocked(fresh.sender_id)
          and fresh.created_at > my_row.last_read_at)
   from chat_members my_row
   join chats c on c.id = my_row.chat_id
@@ -287,7 +325,9 @@ as $$
   left join lateral (
     select m.text, m.created_at, m.sender_id
     from messages m
-    where m.chat_id = c.id and m.deleted_at is null
+    where m.chat_id = c.id
+      and m.deleted_at is null
+      and not public.sender_blocked(m.sender_id)
     order by m.created_at desc
     limit 1
   ) last_msg on true

@@ -4,7 +4,6 @@ import { rpcErrorToRussian } from "@/lib/errors";
 import { chatName, formatListTime, type ChatOverviewRow } from "@/lib/chat";
 import { AppShell } from "@/components/AppShell";
 import { Avatar } from "@/components/Avatar";
-import { LiveChats } from "./LiveChats";
 
 // Страница всегда считается на сервере: она смотрит на куки с сессией.
 export const dynamic = "force-dynamic";
@@ -17,8 +16,7 @@ export default async function ChatsPage() {
   const rows = (data ?? []) as ChatOverviewRow[];
 
   return (
-    <AppShell handle={me.handle} active="/chats">
-      <LiveChats />
+    <AppShell meId={me.id} handle={me.handle} active="/chats">
 
       {error && (
         <div className="mx-2 mb-3 rounded-xl bg-alarm px-3 py-2 text-sm text-alarm-text">

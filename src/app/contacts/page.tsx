@@ -9,7 +9,7 @@ export default async function ContactsPage() {
   const { me } = await requireProfile();
 
   return (
-    <AppShell handle={me.handle} active="/contacts">
+    <AppShell meId={me.id} handle={me.handle} active="/contacts">
       <StartChat meId={me.id} myHandle={me.handle} />
     </AppShell>
   );

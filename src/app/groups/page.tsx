@@ -18,7 +18,7 @@ export default async function GroupsPage() {
   );
 
   return (
-    <AppShell handle={me.handle} active="/groups">
+    <AppShell meId={me.id} handle={me.handle} active="/groups">
       <NewGroup meId={me.id} />
 
       {error && (
