@@ -1,97 +1,69 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
+import Link from "next/link";
+import { requireProfile } from "@/lib/session";
+import { rpcErrorToRussian } from "@/lib/errors";
+import { chatName, formatListTime, type ChatOverviewRow } from "@/lib/chat";
+import { AppShell } from "@/components/AppShell";
 import { Avatar } from "@/components/Avatar";
-import { Logo } from "@/components/Logo";
+import { LiveChats } from "./LiveChats";
 
 // Страница всегда считается на сервере: она смотрит на куки с сессией.
 export const dynamic = "force-dynamic";
 
-
-type ChatRow = {
-  id: string;
-  type: "dm" | "group";
-  title: string | null;
-};
-
 export default async function ChatsPage() {
-  if (!isSupabaseConfigured) redirect("/login");
+  const { supabase, me } = await requireProfile();
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, name, handle")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (!profile) redirect("/welcome");
-
-  // Правила безопасности базы (RLS) сами оставят только те чаты, где я участник.
-  const { data: chats } = await supabase
-    .from("chats")
-    .select("id, type, title")
-    .order("created_at", { ascending: false });
-
-  const list = (chats ?? []) as ChatRow[];
+  // Одна функция в базе сразу отдаёт: с кем чат, последнее сообщение и непрочитанные.
+  const { data, error } = await supabase.rpc("chat_overview");
+  const rows = (data ?? []) as ChatOverviewRow[];
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white md:my-4 md:min-h-[calc(100vh-2rem)] md:rounded-3xl md:shadow-sm">
-      <header className="flex items-center justify-between px-4 py-4">
-        <Logo />
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-tynysh-muted">@{profile.handle}</span>
-          <form action="/auth/signout" method="post">
-            <button
-              type="submit"
-              title="Выйти"
-              className="rounded-full px-2 py-1 text-sm text-tynysh-muted hover:bg-tynysh-soft"
-            >
-              ✕
-            </button>
-          </form>
+    <AppShell handle={me.handle} active="/chats">
+      <LiveChats />
+
+      {error && (
+        <div className="mx-2 mb-3 rounded-xl bg-alarm px-3 py-2 text-sm text-alarm-text">
+          {rpcErrorToRussian(error.code, error.message)}
         </div>
-      </header>
+      )}
 
-      <nav className="mx-4 mb-3 flex rounded-xl bg-tynysh-soft p-1 text-sm font-bold">
-        <span className="flex-1 rounded-lg bg-white py-1.5 text-center text-tynysh shadow-sm">
-          Чаты
-        </span>
-        <span className="flex-1 py-1.5 text-center opacity-40">Контакты</span>
-        <span className="flex-1 py-1.5 text-center opacity-40">Группы</span>
-      </nav>
-
-      <div className="flex-1 px-2 pb-4">
-        {list.length === 0 ? (
-          <EmptyChats name={profile.name} />
-        ) : (
-          <ul>
-            {list.map((chat) => (
-              <li key={chat.id}>
-                <div className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left">
-                  <Avatar name={chat.title ?? "Чат"} />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-bold">
-                      {chat.type === "group" && <span className="opacity-40">#</span>}
-                      {chat.title ?? "Чат"}
-                    </div>
-                    <div className="truncate text-xs opacity-60">Напиши первым</div>
+      {rows.length === 0 && !error ? (
+        <EmptyChats name={me.name} />
+      ) : (
+        <ul>
+          {rows.map((row) => (
+            <li key={row.chat_id}>
+              <Link
+                href={`/chats/${row.chat_id}`}
+                className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left hover:bg-slate-50"
+              >
+                <Avatar name={chatName(row)} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-bold">
+                    {row.chat_type === "group" && <span className="opacity-40">#</span>}
+                    {chatName(row)}
+                  </div>
+                  <div className="truncate text-xs opacity-60">
+                    {row.last_text
+                      ? `${row.last_sender_id === me.id ? "Ты: " : ""}${row.last_text}`
+                      : "Напиши первым"}
                   </div>
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <p className="px-5 pb-5 text-xs leading-relaxed text-[#8A85A3]">
-        Если тебе плохо прямо сейчас — звони <b>150</b> (линия доверия, бесплатно,
-        круглосуточно) или <b>112</b>, если опасность прямо сейчас.
-      </p>
-    </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-[10px] opacity-40">
+                    {formatListTime(row.last_at)}
+                  </span>
+                  {row.unread_count > 0 && (
+                    <span className="min-w-5 rounded-full bg-tynysh px-1.5 text-center text-[11px] font-bold text-white">
+                      {row.unread_count}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </AppShell>
   );
 }
 
@@ -100,10 +72,15 @@ function EmptyChats({ name }: { name: string }) {
     <div className="px-6 py-14 text-center">
       <div className="mb-3 text-5xl">💬</div>
       <div className="mb-1 text-lg font-extrabold">Привет, {name}!</div>
-      <p className="text-sm leading-relaxed text-tynysh-muted">
-        Чатов пока нет. Поиск по @юзернейму, личные чаты и группы появятся на
-        следующем этапе — тогда список начнёт заполняться.
+      <p className="mb-5 text-sm leading-relaxed text-tynysh-muted">
+        Чатов пока нет. Найди человека по @юзернейму — и начнётся переписка.
       </p>
+      <Link
+        href="/contacts"
+        className="inline-block rounded-xl bg-tynysh px-5 py-2.5 font-extrabold text-white"
+      >
+        Найти человека
+      </Link>
     </div>
   );
 }

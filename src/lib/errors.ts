@@ -46,3 +46,18 @@ export function dbErrorToRussian(code: string | undefined, message: string): str
     return "В базе нет нужных таблиц. Выполни supabase/schema.sql в SQL Editor.";
   return message;
 }
+
+/**
+ * Ошибки вызова функций базы (start_dm, create_group, chat_overview).
+ * Чаще всего причина одна: в Supabase ещё не выполнен supabase/stage2.sql.
+ */
+export function rpcErrorToRussian(code: string | undefined, message: string): string {
+  const m = message.toLowerCase();
+  if (code === "PGRST202" || code === "42883" || m.includes("schema cache"))
+    return "В базе нет функций для чатов. Открой Supabase → SQL Editor и выполни файл supabase/stage2.sql.";
+  if (code === "42P17" || m.includes("infinite recursion"))
+    return "В базе старые правила доступа. Выполни supabase/stage2.sql в Supabase → SQL Editor.";
+  // Наши собственные проверки внутри функций базы уже написаны по-русски.
+  if (code === "P0001") return message;
+  return dbErrorToRussian(code, message);
+}
