@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { requireProfile } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { profileQuery, requireUser, type Me } from "@/lib/session";
 import { rpcErrorToRussian } from "@/lib/errors";
 import { chatName, formatListTime, type ChatOverviewRow } from "@/lib/chat";
 import { AppShell } from "@/components/AppShell";
@@ -9,10 +10,16 @@ import { Avatar } from "@/components/Avatar";
 export const dynamic = "force-dynamic";
 
 export default async function ChatsPage() {
-  const { supabase, me } = await requireProfile();
+  const { supabase, userId } = await requireUser();
 
+  // Профиль и список чатов запрашиваем одновременно, а не друг за другом.
   // Одна функция в базе сразу отдаёт: с кем чат, последнее сообщение и непрочитанные.
-  const { data, error } = await supabase.rpc("chat_overview");
+  const [{ data: profile }, { data, error }] = await Promise.all([
+    profileQuery(supabase, userId),
+    supabase.rpc("chat_overview"),
+  ]);
+  if (!profile) redirect("/welcome");
+  const me = profile as Me;
   const rows = (data ?? []) as ChatOverviewRow[];
 
   return (

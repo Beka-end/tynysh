@@ -33,6 +33,26 @@ export function LiveNotifications({
   const [permission, setPermission] = useState<NotificationPermission | "none">("none");
   const [unseen, setUnseen] = useState(0);
   const baseTitle = useRef("Tynysh");
+  const lastRefresh = useRef(0);
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // В живом групповом чате сообщения сыплются пачками. Без этого ограничителя
+  // список перезагружался с сервера на каждое из них, и приложение подтормаживало.
+  const refreshSoon = useCallback(() => {
+    const wait = Math.max(0, 1500 - (Date.now() - lastRefresh.current));
+    if (refreshTimer.current) return;
+    refreshTimer.current = setTimeout(() => {
+      refreshTimer.current = null;
+      lastRefresh.current = Date.now();
+      router.refresh();
+    }, wait);
+  }, [router]);
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimer.current) clearTimeout(refreshTimer.current);
+    };
+  }, []);
 
   useEffect(() => {
     baseTitle.current = document.title;
@@ -93,7 +113,7 @@ export function LiveNotifications({
         (payload) => {
           const message = payload.new as NewMessage;
           if (message.sender_id === meId) return;
-          if (refreshList) router.refresh();
+          if (refreshList) refreshSoon();
 
           // Если этот чат открыт и человек смотрит на него — уведомление лишнее.
           if (message.chat_id === currentChatId && !document.hidden) return;
@@ -107,7 +127,7 @@ export function LiveNotifications({
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_members" },
         () => {
-          if (refreshList) router.refresh();
+          if (refreshList) refreshSoon();
         },
       )
       .subscribe();
@@ -115,7 +135,7 @@ export function LiveNotifications({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [meId, currentChatId, refreshList, router, notify]);
+  }, [meId, currentChatId, refreshList, refreshSoon, notify]);
 
   if (!withButton || permission === "granted" || permission === "none") return null;
 

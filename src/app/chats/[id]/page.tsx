@@ -1,5 +1,5 @@
-import { notFound } from "next/navigation";
-import { requireProfile } from "@/lib/session";
+import { notFound, redirect } from "next/navigation";
+import { profileQuery, requireUser } from "@/lib/session";
 import { membersLabel, type ChatType, type Member, type Message } from "@/lib/chat";
 import { ChatRoom } from "./ChatRoom";
 
@@ -19,20 +19,30 @@ export default async function ChatPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase, me } = await requireProfile();
+  const { supabase, userId } = await requireUser();
 
+  // Профиль, сам чат, участники и сообщения — одним заходом, а не по очереди.
   // Если я не участник — правила базы просто не отдадут чат, и будет «не найдено».
-  const { data: chat } = await supabase
-    .from("chats")
-    .select("id, type, title")
-    .eq("id", id)
-    .maybeSingle();
+  const [{ data: profile }, { data: chat }, { data: memberRows }, { data: rows }] =
+    await Promise.all([
+      profileQuery(supabase, userId),
+      supabase.from("chats").select("id, type, title").eq("id", id).maybeSingle(),
+      supabase
+        .from("chat_members")
+        .select("user_id, role, last_read_at, profiles(name, handle)")
+        .eq("chat_id", id),
+      // Берём последние 200 сообщений (самые новые), потом разворачиваем по времени.
+      supabase
+        .from("messages")
+        .select("id, sender_id, text, created_at")
+        .eq("chat_id", id)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(200),
+    ]);
+  if (!profile) redirect("/welcome");
+  const me = profile as { id: string; name: string; handle: string };
   if (!chat) notFound();
-
-  const { data: memberRows } = await supabase
-    .from("chat_members")
-    .select("user_id, role, last_read_at, profiles(name, handle)")
-    .eq("chat_id", id);
 
   const members: Member[] = ((memberRows ?? []) as MemberRow[]).map((row) => {
     const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
@@ -44,15 +54,6 @@ export default async function ChatPage({
       handle: profile?.handle ?? "",
     };
   });
-
-  // Берём последние 200 сообщений (самые новые), потом разворачиваем по времени.
-  const { data: rows } = await supabase
-    .from("messages")
-    .select("id, sender_id, text, created_at")
-    .eq("chat_id", id)
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false })
-    .limit(200);
 
   const messages = ((rows ?? []) as Message[]).slice().reverse();
 

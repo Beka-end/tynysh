@@ -11,6 +11,13 @@ export async function updateSession(request: NextRequest) {
 
   if (!isSupabaseConfigured) return response;
 
+  // Нет куки входа — проверять нечего. Без этого каждая страница гостя
+  // ждала лишний запрос к Supabase.
+  const hasSession = request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("auth-token"));
+  if (!hasSession) return response;
+
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
       getAll() {

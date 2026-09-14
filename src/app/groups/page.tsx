@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { requireProfile } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { profileQuery, requireUser, type Me } from "@/lib/session";
 import { rpcErrorToRussian } from "@/lib/errors";
 import { membersLabel, type ChatOverviewRow } from "@/lib/chat";
 import { AppShell } from "@/components/AppShell";
@@ -10,9 +11,14 @@ import { NewGroup } from "./NewGroup";
 export const dynamic = "force-dynamic";
 
 export default async function GroupsPage() {
-  const { supabase, me } = await requireProfile();
+  const { supabase, userId } = await requireUser();
 
-  const { data, error } = await supabase.rpc("chat_overview");
+  const [{ data: profile }, { data, error }] = await Promise.all([
+    profileQuery(supabase, userId),
+    supabase.rpc("chat_overview"),
+  ]);
+  if (!profile) redirect("/welcome");
+  const me = profile as Me;
   const groups = ((data ?? []) as ChatOverviewRow[]).filter(
     (row) => row.chat_type === "group",
   );
