@@ -24,6 +24,24 @@ export default async function ChatsPage() {
         </div>
       )}
 
+      <Link
+        href="/dos"
+        className="mb-1 flex w-full items-center gap-3 rounded-xl p-2.5 text-left hover:bg-slate-50"
+      >
+        <Avatar name="Дос" isAI />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 truncate font-bold">
+            Дос
+            <span className="rounded-full bg-dos px-1.5 py-0.5 text-[10px] text-dos-text">
+              поддержка
+            </span>
+          </div>
+          <div className="truncate text-xs opacity-60">
+            Напиши, если тяжело. Переписку видишь только ты
+          </div>
+        </div>
+      </Link>
+
       {rows.length === 0 && !error ? (
         <EmptyChats name={me.name} />
       ) : (
