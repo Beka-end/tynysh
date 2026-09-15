@@ -15,6 +15,10 @@ export type Channel = "phone" | "email";
 
 const inputClass =
   "w-full rounded-xl border border-violet-100 bg-white px-4 py-3 outline-none focus:border-violet-400";
+/** Столько Supabase ждёт между двумя кодами на один адрес. */
+const RESEND_SECONDS = 60;
+const SENT_KEY = "tynysh-otp-sent";
+
 const buttonClass =
   "w-full rounded-xl bg-tynysh py-3 font-extrabold text-white disabled:opacity-40";
 
@@ -35,6 +39,25 @@ export function OtpLogin({ channel }: { channel: Channel }) {
     setContact("");
     setCode("");
     setError("");
+  }, [channel]);
+
+  // Код уже отправляли только что? Возвращаем человека к вводу кода и к отсчёту.
+  // Иначе он снова жмёт «Получить код», упирается в защиту от частых запросов
+  // и видит ошибку на ровном месте.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(SENT_KEY);
+      if (!saved) return;
+      const { channel: savedChannel, contact: savedContact, at } = JSON.parse(saved);
+      if (savedChannel !== channel) return;
+      const passed = Math.round((Date.now() - at) / 1000);
+      if (passed > 15 * 60) return; // код всё равно уже не годится
+      setContact(savedContact);
+      setStep("code");
+      setCooldown(Math.max(0, RESEND_SECONDS - passed));
+    } catch {
+      // приватный режим браузера — просто ничего не восстанавливаем
+    }
   }, [channel]);
 
   // таймер «можно запросить код заново»
@@ -67,7 +90,15 @@ export function OtpLogin({ channel }: { channel: Channel }) {
       return;
     }
     setStep("code");
-    setCooldown(60);
+    setCooldown(RESEND_SECONDS);
+    try {
+      localStorage.setItem(
+        SENT_KEY,
+        JSON.stringify({ channel, contact: contact.trim(), at: Date.now() }),
+      );
+    } catch {
+      // ничего страшного
+    }
   }
 
   async function verifyCode() {
@@ -91,6 +122,12 @@ export function OtpLogin({ channel }: { channel: Channel }) {
       setBusy(false);
       setError(authErrorToRussian(error.message));
       return;
+    }
+
+    try {
+      localStorage.removeItem(SENT_KEY);
+    } catch {
+      // ничего страшного
     }
 
     // Главная страница сама решит: заводить профиль или сразу в чаты.
@@ -173,6 +210,11 @@ export function OtpLogin({ channel }: { channel: Channel }) {
             setStep("contact");
             setCode("");
             setError("");
+            try {
+              localStorage.removeItem(SENT_KEY);
+            } catch {
+              // ничего страшного
+            }
           }}
           className="text-tynysh-muted underline"
         >

@@ -21,6 +21,9 @@ export function authErrorToRussian(message: string): string {
       ? `Новый код можно запросить через ${sec} сек.`
       : "Новый код можно запросить чуть позже.";
   }
+  // Лимит проекта на письма — это не вина человека, и ждать бесполезно.
+  if (m.includes("email rate limit") || m.includes("over_email_send_rate_limit"))
+    return "Кончился запас писем на час. У бесплатной почты Supabase он крошечный (около двух писем в час на весь сайт). Владельцу: подключи свой SMTP и подними лимит в Authentication → Rate Limits — шаги 19–21 в SETUP.md.";
   if (m.includes("rate limit") || m.includes("too many"))
     return "Слишком много попыток. Подожди пару минут.";
 
