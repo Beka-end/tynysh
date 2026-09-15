@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import {
   CRISIS_TURN_INSTRUCTION,
   DOS_SYSTEM_PROMPT,
+  NO_QUESTION_TURN,
   buildContext,
 } from "@/lib/dos-prompt";
 import { CRISIS_FALLBACK, isCrisis } from "@/lib/crisis";
@@ -132,6 +133,12 @@ export async function POST(request: Request) {
         : { role: m.role, content: m.text },
     );
 
+  // Если прошлый ответ Доса заканчивался вопросом — в этом вопросов быть не должно.
+  // Иначе разговор скатывается в допрос: человек отвечает, а помощи всё нет.
+  const previous = rows[0];
+  const askedLastTime =
+    previous?.role === "assistant" && /[?？]\s*$/.test(previous.text.trim());
+
   const lastAt = rows[0]?.created_at ? Date.parse(rows[0].created_at) : null;
   const context = buildContext({
     name: (profile as { name?: string } | null)?.name ?? "друг",
@@ -156,6 +163,7 @@ export async function POST(request: Request) {
       },
       // А это меняется каждый раз, поэтому идёт после кэшируемой части.
       { type: "text", text: context },
+      ...(askedLastTime ? [{ type: "text" as const, text: NO_QUESTION_TURN }] : []),
       ...(crisis ? [{ type: "text" as const, text: CRISIS_TURN_INSTRUCTION }] : []),
     ],
     messages: [...history, { role: "user" as const, content: text }],
