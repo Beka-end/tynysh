@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { profileQuery, requireUser, type Me } from "@/lib/session";
+import { guardProfile, profileQuery, requireUser } from "@/lib/session";
 import { rpcErrorToRussian } from "@/lib/errors";
 import { membersLabel, type ChatOverviewRow } from "@/lib/chat";
 import { AppShell } from "@/components/AppShell";
@@ -17,8 +16,7 @@ export default async function GroupsPage() {
     profileQuery(supabase, userId),
     supabase.rpc("chat_overview"),
   ]);
-  if (!profile) redirect("/welcome");
-  const me = profile as Me;
+  const me = guardProfile(profile);
   const groups = ((data ?? []) as ChatOverviewRow[]).filter(
     (row) => row.chat_type === "group",
   );

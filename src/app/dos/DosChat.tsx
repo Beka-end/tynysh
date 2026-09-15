@@ -336,16 +336,22 @@ export function DosChat({
                 <div className="text-xs opacity-60">в год · −33%</div>
               </div>
             </div>
+            <Link
+              href="/plus"
+              className="block w-full rounded-xl bg-tynysh py-3 text-center font-extrabold text-white"
+            >
+              Оплатить через Kaspi
+            </Link>
             <button
               type="button"
               onClick={() => setPaywall(false)}
-              className="w-full rounded-xl bg-tynysh py-3 font-extrabold text-white"
+              className="w-full py-2 text-sm opacity-60"
             >
-              Понятно
+              Не сейчас
             </button>
             <p className="mt-2 text-[11px] leading-relaxed opacity-50">
-              Оплату через Kaspi подключим на следующем этапе. Обычные чаты и группы
-              бесплатны всегда. Если тебе плохо прямо сейчас — звони 150, это
+              Оплата ручная: платишь по ссылке Kaspi и присылаешь скриншот.
+              Обычные чаты и группы бесплатны всегда. Если тебе плохо прямо сейчас — звони 150, это
               бесплатно и без всякой подписки.
             </p>
           </div>

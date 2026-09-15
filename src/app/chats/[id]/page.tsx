@@ -1,5 +1,5 @@
-import { notFound, redirect } from "next/navigation";
-import { profileQuery, requireUser } from "@/lib/session";
+import { notFound } from "next/navigation";
+import { guardProfile, profileQuery, requireUser } from "@/lib/session";
 import { membersLabel, type ChatType, type Member, type Message } from "@/lib/chat";
 import { ChatRoom } from "./ChatRoom";
 
@@ -40,8 +40,7 @@ export default async function ChatPage({
         .order("created_at", { ascending: false })
         .limit(200),
     ]);
-  if (!profile) redirect("/welcome");
-  const me = profile as { id: string; name: string; handle: string };
+  const me = guardProfile(profile);
   if (!chat) notFound();
 
   const members: Member[] = ((memberRows ?? []) as MemberRow[]).map((row) => {

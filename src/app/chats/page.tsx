@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { profileQuery, requireUser, type Me } from "@/lib/session";
+import { guardProfile, requireUser } from "@/lib/session";
 import { rpcErrorToRussian } from "@/lib/errors";
 import { chatName, formatListTime, type ChatOverviewRow } from "@/lib/chat";
 import { AppShell } from "@/components/AppShell";
@@ -15,11 +14,14 @@ export default async function ChatsPage() {
   // Профиль и список чатов запрашиваем одновременно, а не друг за другом.
   // Одна функция в базе сразу отдаёт: с кем чат, последнее сообщение и непрочитанные.
   const [{ data: profile }, { data, error }] = await Promise.all([
-    profileQuery(supabase, userId),
+    supabase
+      .from("profiles")
+      .select("id, name, handle, banned, is_admin")
+      .eq("id", userId)
+      .maybeSingle(),
     supabase.rpc("chat_overview"),
   ]);
-  if (!profile) redirect("/welcome");
-  const me = profile as Me;
+  const me = guardProfile(profile);
   const rows = (data ?? []) as ChatOverviewRow[];
 
   return (
@@ -29,6 +31,15 @@ export default async function ChatsPage() {
         <div className="mx-2 mb-3 rounded-xl bg-alarm px-3 py-2 text-sm text-alarm-text">
           {rpcErrorToRussian(error.code, error.message)}
         </div>
+      )}
+
+      {(profile as { is_admin?: boolean } | null)?.is_admin && (
+        <Link
+          href="/admin"
+          className="mx-1 mb-2 block rounded-xl bg-tynysh-soft px-3 py-2 text-sm font-bold text-tynysh"
+        >
+          ⚙ Админка
+        </Link>
       )}
 
       <Link

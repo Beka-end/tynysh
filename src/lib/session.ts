@@ -2,7 +2,15 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
-export type Me = { id: string; name: string; handle: string };
+export type Me = { id: string; name: string; handle: string; banned?: boolean | null };
+
+/** Общая проверка для всех страниц: профиль заведён и аккаунт не забанен. */
+export function guardProfile(profile: unknown): Me {
+  const me = profile as Me | null;
+  if (!me) redirect("/welcome");
+  if (me.banned) redirect("/banned");
+  return me;
+}
 
 /**
  * Только проверка входа. Профиль страница грузит сама — вместе со своими
@@ -25,7 +33,7 @@ export function profileQuery(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
 ) {
-  return supabase.from("profiles").select("id, name, handle").eq("id", userId).maybeSingle();
+  return supabase.from("profiles").select("id, name, handle, banned").eq("id", userId).maybeSingle();
 }
 
 /**
@@ -43,10 +51,8 @@ export async function requireProfile() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, name, handle")
+    .select("id, name, handle, banned")
     .eq("id", user.id)
     .maybeSingle();
-  if (!profile) redirect("/welcome");
-
-  return { supabase, me: profile as Me };
+  return { supabase, me: guardProfile(profile) };
 }

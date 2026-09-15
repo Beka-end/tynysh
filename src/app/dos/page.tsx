@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { profileQuery, requireUser } from "@/lib/session";
+import { guardProfile, profileQuery, requireUser } from "@/lib/session";
 import { DosChat, type DosMessage } from "./DosChat";
 
 // Страница всегда считается на сервере: она смотрит на куки с сессией.
@@ -26,7 +25,7 @@ export default async function DosPage() {
       .limit(200),
     supabase.rpc("dos_status"),
   ]);
-  if (!profile) redirect("/welcome");
+  guardProfile(profile);
 
   const history = ((rows ?? []) as DosMessage[]).slice().reverse();
   const status = (Array.isArray(statusRows) ? statusRows[0] : statusRows) as Status | null;

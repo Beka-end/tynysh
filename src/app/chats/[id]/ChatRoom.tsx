@@ -44,6 +44,8 @@ export function ChatRoom({
   const supabase = useMemo(() => createClient(), []);
   const [showAbout, setShowAbout] = useState(false);
   const [blockBusy, setBlockBusy] = useState(false);
+  const [reportText, setReportText] = useState("");
+  const [reportSent, setReportSent] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [members, setMembers] = useState<Member[]>(initialMembers);
   const [text, setText] = useState("");
@@ -160,6 +162,26 @@ export function ChatRoom({
     router.refresh();
   }
 
+  async function sendReport() {
+    if (!partner || blockBusy) return;
+    setBlockBusy(true);
+    setError("");
+
+    const { error: reportError } = await supabase.from("reports").insert({
+      reporter_id: meId,
+      target_id: partner.id,
+      reason: reportText.trim() || "без описания",
+    });
+
+    setBlockBusy(false);
+    if (reportError) {
+      setError(dbErrorToRussian(reportError.code, reportError.message));
+      return;
+    }
+    setReportSent(true);
+    setReportText("");
+  }
+
   async function send() {
     const value = text.trim();
     if (!value || sending) return;
@@ -239,6 +261,33 @@ export function ChatRoom({
               ? "Сейчас этот человек не может тебе писать, а его сообщения ты не видишь."
               : "После блокировки он не сможет тебе писать, а его сообщения пропадут из чатов. Он об этом не узнает. Разблокировать можно в любой момент."}
           </p>
+          <div className="mt-3 border-t border-violet-100 pt-3">
+            {reportSent ? (
+              <p className="text-xs leading-relaxed text-tynysh-muted">
+                Жалоба отправлена. Мы посмотрим её в ближайшее время. Если человек
+                опасен — лучше ещё и заблокировать его кнопкой выше.
+              </p>
+            ) : (
+              <>
+                <div className="mb-1 text-xs font-bold opacity-60">Пожаловаться</div>
+                <textarea
+                  value={reportText}
+                  onChange={(e) => setReportText(e.target.value.slice(0, 500))}
+                  placeholder="Что случилось? Например: просит фото, угрожает, оскорбляет"
+                  rows={2}
+                  className="w-full rounded-xl border border-violet-100 px-3 py-2 text-sm outline-none focus:border-violet-400"
+                />
+                <button
+                  type="button"
+                  onClick={sendReport}
+                  disabled={blockBusy}
+                  className="mt-1 w-full rounded-xl bg-tynysh-soft py-2 text-sm font-bold text-tynysh disabled:opacity-50"
+                >
+                  Отправить жалобу
+                </button>
+              </>
+            )}
+          </div>
           <p className="mt-2 text-xs leading-relaxed text-tynysh-muted">
             Если тебе угрожают или просят фото — расскажи взрослому, которому доверяешь,
             или звони <b>150</b>.
