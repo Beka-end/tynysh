@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { DOS_SYSTEM_PROMPT } from "@/lib/dos-prompt";
+import {
+  CRISIS_TURN_INSTRUCTION,
+  DOS_SYSTEM_PROMPT,
+  buildContext,
+} from "@/lib/dos-prompt";
 import { CRISIS_FALLBACK, isCrisis } from "@/lib/crisis";
 import {
   DOS_HISTORY_LIMIT,
@@ -23,9 +27,21 @@ type Slot = {
   free_total: number;
 };
 
+type HistoryRow = { role: "user" | "assistant"; text: string; created_at: string };
+
 // Тексты сообщений на сервере не логируем — правило из CLAUDE.md.
 function fail(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
+}
+
+/** Который сейчас час у собеседника (Казахстан). */
+function almatyHour(): number {
+  const raw = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Almaty",
+    hour: "2-digit",
+    hour12: false,
+  }).format(new Date());
+  return Number(raw) % 24;
 }
 
 export async function POST(request: Request) {
@@ -83,68 +99,118 @@ export async function POST(request: Request) {
     );
   }
 
-  // Последние сообщения — чтобы Дос помнил разговор, но счёт не рос лавиной.
-  const { data: historyRows } = await supabase
-    .from("dos_messages")
-    .select("role, text")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(DOS_HISTORY_LIMIT);
+  // Профиль (нужно имя) и последние сообщения — одновременно.
+  const [{ data: profile }, { data: historyRows }] = await Promise.all([
+    supabase.from("profiles").select("name").eq("id", user.id).maybeSingle(),
+    supabase
+      .from("dos_messages")
+      .select("role, text, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(DOS_HISTORY_LIMIT),
+  ]);
 
-  const history = ((historyRows ?? []) as { role: "user" | "assistant"; text: string }[])
+  const rows = (historyRows ?? []) as HistoryRow[];
+  const history: Anthropic.MessageParam[] = rows
     .slice()
     .reverse()
-    .map((m) => ({ role: m.role, content: m.text }));
-
-  await supabase
-    .from("dos_messages")
-    .insert({ user_id: user.id, role: "user", text });
-
-  let answer = "";
-  try {
-    const claude = new Anthropic();
-    const response = await claude.messages.create({
-      model: DOS_MODEL,
-      max_tokens: DOS_MAX_TOKENS,
-      // Промпт Доса не меняется от запроса к запросу — помечаем его как
-      // кэшируемый, повторные обращения к нему стоят в 10 раз дешевле.
-      system: [
-        {
-          type: "text",
-          text: DOS_SYSTEM_PROMPT,
-          cache_control: { type: "ephemeral" },
-        },
-      ],
-      messages: [...history, { role: "user" as const, content: text }],
-    });
-
-    for (const block of response.content) {
-      if (block.type === "text") answer += block.text;
-    }
-    answer = answer.trim();
-  } catch (error) {
-    const known =
-      error instanceof Anthropic.AuthenticationError
-        ? "Ключ Claude не подошёл. Проверь ANTHROPIC_API_KEY."
-        : error instanceof Anthropic.RateLimitError
-          ? "Дос сейчас перегружен. Попробуй через минуту."
-          : "Дос не ответил. Попробуй ещё раз.";
-    return NextResponse.json(
-      { error: known, crisis, text: crisis ? CRISIS_FALLBACK : null },
-      { status: 502 },
+    .map((m, index, all) =>
+      index === all.length - 1
+        ? {
+            // Отметка на последнем сообщении истории: всё, что до неё
+            // (промпт + разговор), при следующем ответе берётся из кэша
+            // и стоит в десять раз дешевле.
+            role: m.role,
+            content: [
+              {
+                type: "text" as const,
+                text: m.text,
+                cache_control: { type: "ephemeral" as const },
+              },
+            ],
+          }
+        : { role: m.role, content: m.text },
     );
-  }
 
-  if (!answer) answer = "Я здесь. Расскажи ещё?";
+  const lastAt = rows[0]?.created_at ? Date.parse(rows[0].created_at) : null;
+  const context = buildContext({
+    name: (profile as { name?: string } | null)?.name ?? "друг",
+    hour: almatyHour(),
+    hoursSinceLast: lastAt ? (Date.now() - lastAt) / 3_600_000 : null,
+    isFirstTalk: rows.length === 0,
+  });
 
-  await supabase
-    .from("dos_messages")
-    .insert({ user_id: user.id, role: "assistant", text: answer });
+  await supabase.from("dos_messages").insert({ user_id: user.id, role: "user", text });
 
-  return NextResponse.json({
-    text: answer,
-    crisis,
-    left: slot.plus_active ? null : slot.left_total,
-    plus: slot.plus_active,
+  const claude = new Anthropic();
+  const stream = claude.messages.stream({
+    model: DOS_MODEL,
+    max_tokens: DOS_MAX_TOKENS,
+    system: [
+      {
+        // Сам промпт не меняется от запроса к запросу — помечаем его как
+        // кэшируемый, повторные обращения к нему стоят в 10 раз дешевле.
+        type: "text",
+        text: DOS_SYSTEM_PROMPT,
+        cache_control: { type: "ephemeral" },
+      },
+      // А это меняется каждый раз, поэтому идёт после кэшируемой части.
+      { type: "text", text: context },
+      ...(crisis ? [{ type: "text" as const, text: CRISIS_TURN_INSTRUCTION }] : []),
+    ],
+    messages: [...history, { role: "user" as const, content: text }],
+  });
+
+  // Ответ отдаём по мере написания: человек видит первые слова через секунду,
+  // а не смотрит на «Дос печатает…» десять секунд.
+  const encoder = new TextEncoder();
+  const body = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      let answer = "";
+      try {
+        for await (const event of stream) {
+          if (
+            event.type === "content_block_delta" &&
+            event.delta.type === "text_delta"
+          ) {
+            answer += event.delta.text;
+            controller.enqueue(encoder.encode(event.delta.text));
+          }
+        }
+      } catch {
+        if (!answer) {
+          controller.enqueue(
+            encoder.encode(
+              crisis
+                ? CRISIS_FALLBACK
+                : "Дос не смог ответить — попробуй написать ещё раз.",
+            ),
+          );
+        }
+      }
+
+      if (answer.trim()) {
+        await supabase.from("dos_messages").insert({
+          user_id: user.id,
+          role: "assistant",
+          text: answer.trim(),
+        });
+      }
+      controller.close();
+    },
+    cancel() {
+      stream.abort();
+    },
+  });
+
+  return new Response(body, {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Accel-Buffering": "no",
+      "X-Dos-Crisis": crisis ? "1" : "0",
+      "X-Dos-Plus": slot.plus_active ? "1" : "0",
+      "X-Dos-Left": slot.plus_active ? "" : String(slot.left_total),
+    },
   });
 }

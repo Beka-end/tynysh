@@ -15,7 +15,7 @@ export const DOS_MODEL = "claude-sonnet-4-6";
 export const DOS_HISTORY_LIMIT = 12;
 
 /** Потолок длины ответа. Дос отвечает 2–5 предложениями — этого хватает. */
-export const DOS_MAX_TOKENS = 500;
+export const DOS_MAX_TOKENS = 700;
 
 /** Максимальная длина сообщения человека. */
 export const DOS_MAX_INPUT = 2000;

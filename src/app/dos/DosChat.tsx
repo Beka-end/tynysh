@@ -70,41 +70,74 @@ export function DosChat({
     add("user", clean);
     setTyping(true);
 
-    let data: {
-      text?: string | null;
-      crisis?: boolean;
-      left?: number | null;
-      limitReached?: boolean;
-      error?: string;
-    };
+    let response: Response;
     try {
-      const response = await fetch("/api/dos", {
+      response = await fetch("/api/dos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: clean }),
       });
-      data = await response.json();
     } catch {
       setTyping(false);
       setError("Нет связи с сервером. Проверь интернет.");
       return;
     }
 
-    setTyping(false);
-    if (data.crisis) setCrisis(true);
-    if (typeof data.left === "number") setLeft(data.left);
-
-    if (data.limitReached) {
-      if (data.text) add("assistant", data.text); // кризисный ответ показываем всегда
-      setPaywall(true);
-      return;
-    }
-    if (data.error) {
+    // Отказ и ошибки приходят обычным JSON, сам ответ Доса — потоком.
+    if (response.headers.get("Content-Type")?.includes("application/json")) {
+      const data = (await response.json()) as {
+        text?: string | null;
+        crisis?: boolean;
+        left?: number | null;
+        limitReached?: boolean;
+        error?: string;
+      };
+      setTyping(false);
+      if (data.crisis) setCrisis(true);
+      if (typeof data.left === "number") setLeft(data.left);
       if (data.text) add("assistant", data.text);
-      setError(data.error);
+      if (data.limitReached) setPaywall(true);
+      else if (data.error) setError(data.error);
       return;
     }
-    if (data.text) add("assistant", data.text);
+
+    if (response.headers.get("X-Dos-Crisis") === "1") setCrisis(true);
+    const leftHeader = response.headers.get("X-Dos-Left");
+    if (leftHeader) setLeft(Number(leftHeader));
+    else if (response.headers.get("X-Dos-Plus") === "1") setLeft(null);
+
+    // Показываем ответ по мере того, как Дос его пишет.
+    const id = `dos-${Date.now()}`;
+    setMessages((prev) => [
+      ...prev,
+      { id, role: "assistant", text: "", created_at: new Date().toISOString() },
+    ]);
+    setTyping(false);
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      setError("Дос не ответил. Попробуй ещё раз.");
+      return;
+    }
+    const decoder = new TextDecoder();
+    let answer = "";
+    try {
+      for (;;) {
+        const { done, value: chunk } = await reader.read();
+        if (done) break;
+        answer += decoder.decode(chunk, { stream: true });
+        setMessages((prev) =>
+          prev.map((m) => (m.id === id ? { ...m, text: answer } : m)),
+        );
+      }
+    } catch {
+      setError("Связь оборвалась на середине ответа.");
+    }
+
+    if (!answer.trim()) {
+      setMessages((prev) => prev.filter((m) => m.id !== id));
+      setError("Дос не ответил. Попробуй ещё раз.");
+    }
   }
 
   async function clearHistory() {
