@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
 import { LiveNotifications } from "./LiveNotifications";
+import { InstallCard } from "./Pwa";
 
 const TABS = [
   { href: "/chats", label: "Чаты" },
@@ -55,12 +56,22 @@ export function AppShell({
       </nav>
 
       <LiveNotifications meId={meId} refreshList withButton />
+      <InstallCard />
 
       <div className="flex-1 px-2 pb-4">{children}</div>
 
-      <p className="px-5 pb-5 text-xs leading-relaxed text-[#8A85A3]">
+      <p className="px-5 pb-2 text-xs leading-relaxed text-[#8A85A3]">
         Если тебе плохо прямо сейчас — звони <b>150</b> (линия доверия, бесплатно,
         круглосуточно) или <b>112</b>, если опасность прямо сейчас.
+      </p>
+      <p className="px-5 pb-5 text-xs text-[#8A85A3]">
+        <Link href="/terms" className="underline">
+          Соглашение
+        </Link>{" "}
+        ·{" "}
+        <Link href="/privacy" className="underline">
+          Конфиденциальность
+        </Link>
       </p>
     </div>
   );

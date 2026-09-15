@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { dbErrorToRussian } from "@/lib/errors";
@@ -14,13 +15,15 @@ export function ProfileForm({ userId }: { userId: string }) {
   const [name, setName] = useState("");
   const [handle, setHandle] = useState("");
   const [year, setYear] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   const birthYear = Number(year);
   const yearError = year.length === 4 ? checkBirthYear(birthYear) : null;
   const handleOk = HANDLE_RE.test(handle);
-  const canSubmit = name.trim().length > 0 && handleOk && year.length === 4 && !yearError;
+  const canSubmit =
+    name.trim().length > 0 && handleOk && year.length === 4 && !yearError && agreed;
 
   async function submit() {
     setBusy(true);
@@ -87,6 +90,27 @@ export function ProfileForm({ userId }: { userId: string }) {
         />
         {yearError && <p className="mt-1 px-1 text-xs text-alarm-text">{yearError}</p>}
       </div>
+
+      <label className="flex items-start gap-2 px-1 py-1 text-xs leading-relaxed text-tynysh-muted">
+        <input
+          type="checkbox"
+          checked={agreed}
+          onChange={(e) => setAgreed(e.target.checked)}
+          className="mt-0.5 h-4 w-4 shrink-0 accent-[#5B4BDB]"
+        />
+        <span>
+          Мне есть 13 лет. Если мне 13–15 — родители знают, что я пользуюсь Tynysh.
+          Я прочитал(а){" "}
+          <Link href="/terms" className="underline" target="_blank">
+            условия
+          </Link>{" "}
+          и{" "}
+          <Link href="/privacy" className="underline" target="_blank">
+            политику конфиденциальности
+          </Link>
+          .
+        </span>
+      </label>
 
       <button
         type="submit"

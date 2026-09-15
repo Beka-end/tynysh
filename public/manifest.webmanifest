@@ -1,0 +1,17 @@
+{
+  "name": "Tynysh — мессенджер, где есть кому выслушать",
+  "short_name": "Tynysh",
+  "description": "Чаты, группы и Дос — помощник для поддержки. Дос не врач.",
+  "start_url": "/chats",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F6F3FF",
+  "theme_color": "#5B4BDB",
+  "lang": "ru",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

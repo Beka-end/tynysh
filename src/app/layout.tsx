@@ -1,10 +1,25 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { PwaSetup } from "@/components/Pwa";
 
 export const metadata: Metadata = {
   title: "Tynysh — мессенджер, где есть кому выслушать",
   description:
     "Чаты, группы и поддержка. Дос — помощник, а не врач. Если тяжело прямо сейчас — 150.",
+  manifest: "/manifest.webmanifest",
+  applicationName: "Tynysh",
+  icons: {
+    icon: [
+      { url: "/icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Tynysh",
+    statusBarStyle: "default",
+  },
 };
 
 export const viewport: Viewport = {
@@ -27,7 +42,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <PwaSetup />
+      </body>
     </html>
   );
 }

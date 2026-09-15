@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -45,6 +46,17 @@ export default async function LoginPage({
         <p className="mt-6 text-xs leading-relaxed text-[#8A85A3]">
           Дос — помощник для поддержки, а не врач. Если тебе плохо прямо сейчас —
           звони <b>150</b> (бесплатно, круглосуточно).
+        </p>
+        <p className="mt-3 text-xs text-[#8A85A3]">
+          Входя, ты соглашаешься с{" "}
+          <Link href="/terms" className="underline">
+            условиями
+          </Link>{" "}
+          и{" "}
+          <Link href="/privacy" className="underline">
+            политикой конфиденциальности
+          </Link>
+          .
         </p>
       </div>
     </main>
