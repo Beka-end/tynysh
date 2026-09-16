@@ -9,6 +9,7 @@ type Status = {
   used_total: number;
   left_total: number;
   free_total: number;
+  plus_left_today: number;
 };
 
 export default async function DosPage() {
@@ -37,6 +38,7 @@ export default async function DosPage() {
       left={status?.plus_active ? null : (status?.left_total ?? null)}
       plus={Boolean(status?.plus_active)}
       freeTotal={status?.free_total ?? 0}
+      plusLeftToday={status?.plus_active ? (status?.plus_left_today ?? null) : null}
     />
   );
 }

@@ -27,6 +27,8 @@ type Slot = {
   used_total: number;
   left_total: number;
   free_total: number;
+  /** ok · pack_over (кончился бесплатный пакет) · plus_daily (потолок у Plus) */
+  reason: string;
 };
 
 type HistoryRow = { role: "user" | "assistant"; text: string; created_at: string };
@@ -83,14 +85,17 @@ export async function POST(request: Request) {
   const slot = (Array.isArray(slotRows) ? slotRows[0] : slotRows) as Slot;
 
   if (!slot?.allowed) {
-    // Бесплатные сообщения кончились. Но если человеку плохо —
-    // помощь показываем всё равно, без всякой оплаты.
+    // Два разных отказа. Подписчику, упёршемуся в дневной потолок, нельзя
+    // показывать «купи Plus» — он уже купил. И в обоих случаях, если человеку
+    // плохо, помощь показываем всё равно, без всякой оплаты.
+    const daily = slot?.reason === "plus_daily";
     return NextResponse.json({
-      limitReached: true,
+      limitReached: !daily,
+      dailyLimit: daily,
       crisis,
       text: crisis ? CRISIS_FALLBACK : null,
-      left: 0,
-      plus: false,
+      left: daily ? null : 0,
+      plus: Boolean(slot?.plus_active),
     });
   }
 

@@ -28,12 +28,15 @@ export function DosChat({
   left: initialLeft,
   plus,
   freeTotal,
+  plusLeftToday,
 }: {
   meId: string;
   history: DosMessage[];
   left: number | null;
   plus: boolean;
   freeTotal: number;
+  /** Сколько сообщений осталось сегодня у подписчика. null — потолка нет. */
+  plusLeftToday: number | null;
 }) {
   const router = useRouter();
   const [messages, setMessages] = useState<DosMessage[]>(history);
@@ -42,6 +45,8 @@ export function DosChat({
   const [typing, setTyping] = useState(false);
   const [crisis, setCrisis] = useState(false);
   const [paywall, setPaywall] = useState(false);
+  const [leftToday, setLeftToday] = useState<number | null>(plusLeftToday);
+  const [dailyDone, setDailyDone] = useState(false);
   const [error, setError] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -90,18 +95,23 @@ export function DosChat({
         crisis?: boolean;
         left?: number | null;
         limitReached?: boolean;
+        dailyLimit?: boolean;
         error?: string;
       };
       setTyping(false);
       if (data.crisis) setCrisis(true);
       if (typeof data.left === "number") setLeft(data.left);
       if (data.text) add("assistant", data.text);
-      if (data.limitReached) setPaywall(true);
+      if (data.dailyLimit) {
+        setLeftToday(0);
+        setDailyDone(true);
+      } else if (data.limitReached) setPaywall(true);
       else if (data.error) setError(data.error);
       return;
     }
 
     if (response.headers.get("X-Dos-Crisis") === "1") setCrisis(true);
+    setLeftToday((n) => (n === null ? null : Math.max(0, n - 1)));
     const leftHeader = response.headers.get("X-Dos-Left");
     if (leftHeader) setLeft(Number(leftHeader));
     else if (response.headers.get("X-Dos-Plus") === "1") setLeft(null);
@@ -278,7 +288,23 @@ export function DosChat({
         </div>
       )}
 
+      {dailyDone && (
+        <div className="mx-3 mb-2 rounded-2xl bg-dos px-4 py-3 text-sm leading-relaxed text-dos-text">
+          <b>На сегодня хватит.</b> Завтра Дос снова будет свободен — так подписка
+          остаётся 990 ₸, а не дорожает. Если тебе плохо прямо сейчас, звони{" "}
+          <b>150</b>: бесплатно, круглосуточно и без всяких лимитов.
+        </div>
+      )}
+
       {error && <div className="bg-alarm px-4 py-2 text-sm text-alarm-text">{error}</div>}
+
+      {plus && leftToday !== null && (
+        <div className="px-4 pb-1 pt-2 text-xs text-tynysh-muted">
+          {leftToday > 0
+            ? `Сегодня осталось ${leftToday} сообщений`
+            : "На сегодня сообщения кончились — завтра снова"}
+        </div>
+      )}
 
       {!plus && left !== null && (
         <button
