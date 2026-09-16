@@ -25,18 +25,13 @@ export function AppShell({
     <div className="mx-auto flex min-h-screen max-w-md flex-col bg-white md:my-4 md:min-h-[calc(100vh-2rem)] md:rounded-3xl md:shadow-sm">
       <header className="flex items-center justify-between px-4 py-4">
         <Logo />
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-tynysh-muted">@{handle}</span>
-          <form action="/auth/signout" method="post">
-            <button
-              type="submit"
-              title="Выйти"
-              className="rounded-full px-2 py-1 text-sm text-tynysh-muted hover:bg-tynysh-soft"
-            >
-              ✕
-            </button>
-          </form>
-        </div>
+        <Link
+          href="/settings"
+          title="Настройки"
+          className="rounded-full px-2 py-1 text-sm text-tynysh-muted hover:bg-tynysh-soft"
+        >
+          @{handle} ⚙
+        </Link>
       </header>
 
       <nav className="mx-4 mb-3 flex rounded-xl bg-tynysh-soft p-1 text-sm font-bold">
