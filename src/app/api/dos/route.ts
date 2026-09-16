@@ -11,6 +11,7 @@ import {
 import { CRISIS_FALLBACK, isCrisis } from "@/lib/crisis";
 import {
   DOS_HISTORY_LIMIT,
+  DOS_HISTORY_LIMIT_PLUS,
   DOS_MAX_INPUT,
   DOS_MAX_TOKENS,
   DOS_MODEL,
@@ -108,7 +109,7 @@ export async function POST(request: Request) {
       .select("role, text, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(DOS_HISTORY_LIMIT),
+      .limit(slot.plus_active ? DOS_HISTORY_LIMIT_PLUS : DOS_HISTORY_LIMIT),
   ]);
 
   const rows = (historyRows ?? []) as HistoryRow[];

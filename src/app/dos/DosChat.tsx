@@ -322,9 +322,8 @@ export function DosChat({
             </p>
             <ul className="mb-5 space-y-1.5 text-sm">
               <li>✓ Разговоры с Досом без лимита</li>
-              <li>✓ Дос помнит прошлые разговоры</li>
-              <li>✓ Дневник настроения и итоги недели</li>
-              <li>✓ Скидка на консультацию живого психолога-партнёра</li>
+              <li>✓ Дос помнит разговоры намного дольше</li>
+              <li>✓ Никакой рекламы — никогда</li>
             </ul>
             <div className="mb-3 flex gap-2">
               <div className="flex-1 rounded-2xl border-2 border-tynysh p-3">
