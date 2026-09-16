@@ -5,19 +5,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-/** Сколько ждём, прежде чем признать ссылку нерабочей. */
-const TIMEOUT_MS = 15_000;
-
-/**
- * Объясняем по-русски, что именно ответил Supabase.
- * Раньше на все случаи была одна фраза «ссылка устарела» — по ней непонятно,
- * что делать дальше.
- */
+/** Объясняем по-русски, что именно не получилось. */
 function explain(code: string | null, description: string | null): string {
   const text = `${code ?? ""} ${description ?? ""}`.toLowerCase();
 
+  if (
+    text.includes("code verifier") ||
+    text.includes("flow state") ||
+    text.includes("code challenge") ||
+    text.includes("pkce")
+  ) {
+    return "Ссылку нужно открывать в том же браузере, где ты запрашивал вход: ключ от входа остаётся там и на другое устройство не переносится. Открой сайт на том же устройстве и запроси вход заново.";
+  }
   if (text.includes("otp_expired") || text.includes("expired")) {
-    return "Эта ссылка больше не работает. Так бывает по трём причинам: открыто не самое последнее письмо (каждое новое письмо отключает предыдущее), почта сама проверила ссылку до тебя, или письмо пролежало больше часа. Запроси письмо заново и открой ссылку из самого свежего.";
+    return "Эта ссылка больше не работает. Так бывает по трём причинам: открыто не самое последнее письмо (каждое новое отключает предыдущее), почта сама проверила ссылку до тебя, или письмо пролежало больше часа. Запроси письмо заново и открой ссылку из самого свежего.";
   }
   if (text.includes("access_denied")) {
     return "Ссылка уже была использована. Второй раз по ней войти нельзя — запроси новое письмо.";
@@ -31,7 +32,7 @@ function explain(code: string | null, description: string | null): string {
 export function CallbackHandler() {
   const router = useRouter();
   const [error, setError] = useState("");
-  // Технический код ответа Supabase — по нему видно точную причину.
+  // Технический код ответа — по нему причина определяется точно.
   const [code, setCode] = useState("");
 
   useEffect(() => {
@@ -56,33 +57,68 @@ export function CallbackHandler() {
       router.refresh();
     }
 
-    // Библиотека сама разбирает адрес и сохраняет вход — ловим момент готовности.
+    /**
+     * Раньше мы просто ждали, пока библиотека разберёт адрес сама, и при неудаче
+     * показывали «вход не сохранился» — без причины. Теперь заканчиваем вход
+     * сами и говорим вслух, что пошло не так.
+     */
+    async function finish() {
+      const returned = query.get("code");
+      const accessToken = hash.get("access_token");
+      const refreshToken = hash.get("refresh_token");
+
+      if (returned) {
+        const { error: exchangeError } =
+          await supabase.auth.exchangeCodeForSession(returned);
+        if (exchangeError) {
+          if (done) return;
+          setError(explain(null, exchangeError.message));
+          setCode(exchangeError.message.slice(0, 80));
+          return;
+        }
+        enter();
+        return;
+      }
+
+      if (accessToken && refreshToken) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (sessionError) {
+          if (done) return;
+          setError(explain(null, sessionError.message));
+          setCode(sessionError.message.slice(0, 80));
+          return;
+        }
+        enter();
+        return;
+      }
+
+      // Ключа в адресе нет. Возможно, вход уже сохранён с прошлого раза.
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        enter();
+        return;
+      }
+      if (done) return;
+      setError(
+        "В ссылке не оказалось ключа для входа. Скорее всего, письмо открыто не до конца или ссылка обрезалась. Запроси вход заново.",
+      );
+      setCode("нет ключа в адресе");
+    }
+
+    // Библиотека может успеть разобрать адрес раньше нас — тогда просто входим.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) enter();
     });
 
-    // На случай, если вход сохранился ещё до того, как мы начали слушать.
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) enter();
-    });
-
-    const timer = setTimeout(() => {
-      if (done) return;
-      // В адресе вообще не было ключей от входа — значит, по ссылке ничего не пришло.
-      const empty = !hash.get("access_token") && !query.get("code");
-      setError(
-        empty
-          ? "В ссылке не оказалось ключа для входа. Скорее всего, письмо открыто не до конца или ссылка обрезалась. Попробуй нажать на саму кнопку «Подтвердить» в письме, либо войди по номеру телефона."
-          : "Войти по ссылке не получилось. Запроси письмо заново и открой ссылку из самого свежего.",
-      );
-      setCode(empty ? "нет ключа в адресе" : "ключ есть, но вход не сохранился");
-    }, TIMEOUT_MS);
+    void finish();
 
     return () => {
       subscription.unsubscribe();
-      clearTimeout(timer);
     };
   }, [router]);
 
