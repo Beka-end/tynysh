@@ -31,6 +31,8 @@ function explain(code: string | null, description: string | null): string {
 export function CallbackHandler() {
   const router = useRouter();
   const [error, setError] = useState("");
+  // Технический код ответа Supabase — по нему видно точную причину.
+  const [code, setCode] = useState("");
 
   useEffect(() => {
     // Supabase кладёт ответ либо в адрес после «#», либо в обычные параметры.
@@ -40,6 +42,7 @@ export function CallbackHandler() {
 
     if (pick("error") || pick("error_code") || pick("error_description")) {
       setError(explain(pick("error_code") ?? pick("error"), pick("error_description")));
+      setCode(pick("error_code") ?? pick("error") ?? "");
       return;
     }
 
@@ -74,6 +77,7 @@ export function CallbackHandler() {
           ? "В ссылке не оказалось ключа для входа. Скорее всего, письмо открыто не до конца или ссылка обрезалась. Попробуй нажать на саму кнопку «Подтвердить» в письме, либо войди по номеру телефона."
           : "Войти по ссылке не получилось. Запроси письмо заново и открой ссылку из самого свежего.",
       );
+      setCode(empty ? "нет ключа в адресе" : "ключ есть, но вход не сохранился");
     }, TIMEOUT_MS);
 
     return () => {
@@ -88,6 +92,11 @@ export function CallbackHandler() {
         <div className="rounded-xl bg-alarm px-4 py-3 text-left text-sm leading-relaxed text-alarm-text">
           {error}
         </div>
+        {code && (
+          <p className="mt-2 text-left text-[11px] text-tynysh-muted">
+            Код ошибки: <b>{code}</b> — пришли его разработчику, если повторяется.
+          </p>
+        )}
         <Link
           href="/login"
           className="mt-4 inline-block font-bold text-tynysh underline"
