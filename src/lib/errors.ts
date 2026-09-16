@@ -2,6 +2,18 @@
 export function authErrorToRussian(message: string): string {
   const m = message.toLowerCase();
 
+  // Вход по паролю
+  if (m.includes("invalid login credentials"))
+    return "Почта или пароль не подходят. Если аккаунта ещё нет — нажми «Создать аккаунт».";
+  if (m.includes("user already registered") || m.includes("already been registered"))
+    return "Такая почта уже зарегистрирована. Нажми «Войти», а если забыл пароль — войди по коду из письма.";
+  if (m.includes("password should be at least") || m.includes("password is too short"))
+    return "Пароль слишком короткий — нужно хотя бы 8 символов.";
+  if (m.includes("email not confirmed"))
+    return "Почта ещё не подтверждена. Открой письмо от Tynysh и нажми ссылку — или попроси владельца выключить подтверждение почты в Supabase.";
+  if (m.includes("weak password") || m.includes("password is known to be weak"))
+    return "Такой пароль слишком простой, его легко подобрать. Придумай другой.";
+
   // Сначала — что не так с самим номером или адресом
   if (m.includes("phone") && (m.includes("invalid") || m.includes("format")))
     return "Проверь номер телефона — он должен быть с кодом страны, например +7 701 234 56 78.";

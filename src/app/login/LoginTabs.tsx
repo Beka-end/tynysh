@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { OtpLogin, type Channel } from "./OtpLogin";
-import { PHONE_LOGIN_ENABLED } from "@/lib/login-config";
+import { PasswordLogin } from "./PasswordLogin";
+import { PASSWORD_LOGIN_ENABLED, PHONE_LOGIN_ENABLED } from "@/lib/login-config";
 
 const TABS: [Channel, string][] = [
   ["phone", "По телефону"],
@@ -14,6 +15,7 @@ export function LoginTabs() {
     PHONE_LOGIN_ENABLED ? "phone" : "email",
   );
   const [showPhone, setShowPhone] = useState(PHONE_LOGIN_ENABLED);
+  const [byCode, setByCode] = useState(!PASSWORD_LOGIN_ENABLED);
 
   // Служебный вход для владельца: /login?phone=1 — в его тестовые аккаунты,
   // заведённые по номеру. Обычные люди про этот адрес не знают.
@@ -27,7 +29,22 @@ export function LoginTabs() {
   if (!showPhone) {
     return (
       <div>
-        <OtpLogin channel="email" />
+        {byCode ? (
+          <>
+            <OtpLogin channel="email" />
+            {PASSWORD_LOGIN_ENABLED && (
+              <button
+                type="button"
+                onClick={() => setByCode(false)}
+                className="mt-2 w-full py-1 text-sm text-tynysh-muted underline"
+              >
+                Вернуться ко входу по паролю
+              </button>
+            )}
+          </>
+        ) : (
+          <PasswordLogin onWantCode={() => setByCode(true)} />
+        )}
       </div>
     );
   }

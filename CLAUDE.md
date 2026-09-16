@@ -5,8 +5,10 @@
 ## Стек (не менять без обсуждения)
 - Next.js 15 (App Router) + TypeScript + Tailwind. Язык интерфейса: русский.
 - Supabase: Auth, Postgres, Realtime, Row Level Security.
-- Вход — по почте (код из письма). Вход по номеру выключен до подключения SMS:
-  выключатель в `src/lib/login-config.ts`, служебный доступ — `/login?phone=1`.
+- Вход — почта и пароль (письма для регистрации не нужны). Код из письма остался
+  запасным способом («Забыл пароль») и работает только при настроенном SMTP.
+  Вход по номеру выключен до подключения SMS. Все три выключателя —
+  в `src/lib/login-config.ts`, служебный доступ к телефону — `/login?phone=1`.
 - Claude API (`claude-sonnet-4-6`) — только в серверных route handlers. Ключ в `ANTHROPIC_API_KEY`, никогда не в клиентском коде и не в `NEXT_PUBLIC_*`.
 - Хостинг Vercel. Секреты только в `.env.local` (в `.gitignore`) и в настройках Vercel.
 
