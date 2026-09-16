@@ -66,6 +66,10 @@ export function AppShell({
         ·{" "}
         <Link href="/privacy" className="underline">
           Конфиденциальность
+        </Link>{" "}
+        ·{" "}
+        <Link href="/install" className="font-bold text-tynysh underline">
+          Установить на телефон
         </Link>
       </p>
     </div>

@@ -48,6 +48,12 @@ export default async function LoginPage({
           звони <b>150</b> (бесплатно, круглосуточно).
         </p>
         <p className="mt-3 text-xs text-[#8A85A3]">
+          <Link href="/install" className="font-bold text-tynysh underline">
+            Поставить Tynysh на телефон
+          </Link>{" "}
+          — без App Store, за два нажатия.
+        </p>
+        <p className="mt-3 text-xs text-[#8A85A3]">
           Входя, ты соглашаешься с{" "}
           <Link href="/terms" className="underline">
             условиями
