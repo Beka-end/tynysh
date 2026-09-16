@@ -171,6 +171,13 @@ export function DosChat({
             всегда на связи · не заменяет врача
           </div>
         </div>
+        <Link
+          href="/mood"
+          title="Дневник настроения"
+          className="rounded-full px-2 py-1 text-xs font-bold text-tynysh hover:bg-tynysh-soft"
+        >
+          Дневник
+        </Link>
         <button
           type="button"
           onClick={clearHistory}
@@ -323,6 +330,7 @@ export function DosChat({
             <ul className="mb-5 space-y-1.5 text-sm">
               <li>✓ Разговоры с Досом без лимита</li>
               <li>✓ Дос помнит разговоры намного дольше</li>
+              <li>✓ Итог недели по дневнику настроения</li>
               <li>✓ Никакой рекламы — никогда</li>
             </ul>
             <div className="mb-3 flex gap-2">
