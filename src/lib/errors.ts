@@ -20,9 +20,12 @@ export function authErrorToRussian(message: string): string {
   if (m.includes("email") && (m.includes("invalid") || m.includes("format")))
     return "Проверь адрес почты — похоже, в нём опечатка.";
 
-  // Потом — что не так с отправкой кода
+  // Потом — что не так с отправкой кода.
+  // Раньше здесь было написано про лимит бесплатного Supabase — но это лишь
+  // одна из причин, и после подключения своего SMTP она уже неверна. Такой
+  // текст уводил не туда, поэтому теперь называем настоящее место поломки.
   if (m.includes("email") && (m.includes("sending") || m.includes("smtp")))
-    return "Письмо не отправилось. Проверь адрес или попробуй через пару минут: у бесплатного Supabase есть ограничение на число писем в час.";
+    return "Письмо не ушло: сервер отправки отказал. Владельцу: Authentication → Emails → SMTP Settings (пароль — ключ Resend, порт 465), и домен в Resend должен быть Verified. Подробности ошибки — в Supabase → Logs → Auth Logs.";
   if (m.includes("sms") || m.includes("provider"))
     return "SMS не отправляются: в Supabase не подключён SMS-провайдер. Для проверки добавь тестовый номер в Authentication → Sign In / Providers → Phone → Test OTP. Либо войди по почте — вкладка сверху.";
 
@@ -49,6 +52,22 @@ export function authErrorToRussian(message: string): string {
     return "Нет связи с сервером. Проверь интернет и адрес Supabase в настройках.";
 
   return message;
+}
+
+/**
+ * Техническая строка для владельца: настоящий текст ошибки рядом с понятной
+ * фразой. Без неё приходится гадать — человеческий перевод по определению
+ * теряет подробности, а именно они нужны, когда что-то настроено не так.
+ */
+export function authErrorTech(error: {
+  message: string;
+  status?: number;
+  code?: string;
+}): string {
+  const parts = [error.message];
+  if (error.code) parts.push(error.code);
+  if (error.status) parts.push(`HTTP ${error.status}`);
+  return parts.join(" · ");
 }
 
 /** Ошибки базы: 23505 — нарушено «уникальное» правило (например, занят @юзернейм). */

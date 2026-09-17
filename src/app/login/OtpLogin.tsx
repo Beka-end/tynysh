@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { authErrorToRussian } from "@/lib/errors";
+import { authErrorTech, authErrorToRussian } from "@/lib/errors";
 import { formatPhone, isValidPhone, normalizePhone } from "@/lib/phone";
 import { isValidEmail, normalizeEmail } from "@/lib/email";
 
@@ -31,6 +31,9 @@ export function OtpLogin({ channel }: { channel: Channel }) {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  // Настоящий текст ошибки от Supabase. Показываем мелким шрифтом рядом:
+  // без него причину («домен не подтверждён», «SMTP не отвечает») не отличить.
+  const [errorTech, setErrorTech] = useState("");
   const [cooldown, setCooldown] = useState(0);
 
   // при переключении вкладки начинаем с чистого листа
@@ -39,6 +42,7 @@ export function OtpLogin({ channel }: { channel: Channel }) {
     setContact("");
     setCode("");
     setError("");
+    setErrorTech("");
   }, [channel]);
 
   // Код уже отправляли только что? Возвращаем человека к вводу кода и к отсчёту.
@@ -73,6 +77,7 @@ export function OtpLogin({ channel }: { channel: Channel }) {
   async function sendCode() {
     setBusy(true);
     setError("");
+    setErrorTech("");
 
     const supabase = createClient();
     const { error } = isPhone
@@ -87,6 +92,7 @@ export function OtpLogin({ channel }: { channel: Channel }) {
 
     if (error) {
       setError(authErrorToRussian(error.message));
+      setErrorTech(authErrorTech(error));
       return;
     }
     setStep("code");
@@ -104,6 +110,7 @@ export function OtpLogin({ channel }: { channel: Channel }) {
   async function verifyCode() {
     setBusy(true);
     setError("");
+    setErrorTech("");
 
     const supabase = createClient();
     const { error } = isPhone
@@ -121,6 +128,7 @@ export function OtpLogin({ channel }: { channel: Channel }) {
     if (error) {
       setBusy(false);
       setError(authErrorToRussian(error.message));
+      setErrorTech(authErrorTech(error));
       return;
     }
 
@@ -155,7 +163,7 @@ export function OtpLogin({ channel }: { channel: Channel }) {
         <button type="submit" disabled={!contactOk || busy} className={buttonClass}>
           {busy ? "Отправляем…" : "Получить код"}
         </button>
-        {error && <ErrorBox text={error} />}
+        {error && <ErrorBox text={error} tech={errorTech} />}
         <p className="text-xs text-tynysh-muted">
           {isPhone
             ? "Пришлём SMS с кодом. Номер никому не показывается — другие видят только твой @юзернейм."
@@ -202,7 +210,7 @@ export function OtpLogin({ channel }: { channel: Channel }) {
       >
         {busy ? "Проверяем…" : "Подтвердить"}
       </button>
-      {error && <ErrorBox text={error} />}
+      {error && <ErrorBox text={error} tech={errorTech} />}
 
       <div className="flex items-center justify-between pt-1 text-sm">
         <button
@@ -211,6 +219,7 @@ export function OtpLogin({ channel }: { channel: Channel }) {
             setStep("contact");
             setCode("");
             setError("");
+            setErrorTech("");
             try {
               localStorage.removeItem(SENT_KEY);
             } catch {
@@ -241,8 +250,13 @@ export function OtpLogin({ channel }: { channel: Channel }) {
   );
 }
 
-function ErrorBox({ text }: { text: string }) {
+function ErrorBox({ text, tech }: { text: string; tech?: string }) {
   return (
-    <div className="rounded-xl bg-alarm px-3 py-2 text-sm text-alarm-text">{text}</div>
+    <div className="rounded-xl bg-alarm px-3 py-2 text-sm text-alarm-text">
+      {text}
+      {tech && tech !== text && (
+        <p className="mt-1 break-words text-xs opacity-60">{tech}</p>
+      )}
+    </div>
   );
 }
