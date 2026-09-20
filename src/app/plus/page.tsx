@@ -35,6 +35,14 @@ export default async function PlusPage() {
   const textOf = (key: string) =>
     ((texts ?? []) as TextSetting[]).find((t) => t.key === key)?.value ?? "";
 
+  // Обещать «без лимита», когда потолок есть, нельзя: человек платит за одно,
+  // а упирается в другое. Пишем ту цифру, которая на самом деле стоит в базе.
+  const plusDaily = setting("dos_plus_daily", 10);
+  const plusDailyLine =
+    plusDaily > 0
+      ? `✓ ${plusDaily} сообщений Досу каждый день — счёт обнуляется утром`
+      : "✓ Разговоры с Досом без лимита";
+
   const full = profile as { is_plus?: boolean; plus_until?: string | null } | null;
   const pending = ((orders ?? []) as { status: string }[])[0]?.status === "pending";
 
@@ -53,7 +61,7 @@ export default async function PlusPage() {
       </p>
 
       <ul className="mb-6 space-y-1.5 text-sm">
-        <li>✓ Разговоры с Досом без лимита</li>
+        <li>{plusDailyLine}</li>
         <li>✓ Дос помнит разговоры намного дольше</li>
         <li>✓ Итог недели по дневнику настроения</li>
         <li>✓ Никакой рекламы — никогда</li>
@@ -70,6 +78,7 @@ export default async function PlusPage() {
         priceMonth={setting("plus_price_month", 990)}
         priceYear={setting("plus_price_year", 7900)}
         kaspiLink={textOf("kaspi_link")}
+        kaspiLinkYear={textOf("kaspi_link_year")}
         support={textOf("support_contact")}
         alreadyPlus={Boolean(full?.is_plus)}
         plusUntil={full?.plus_until ?? null}

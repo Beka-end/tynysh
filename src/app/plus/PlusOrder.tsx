@@ -16,6 +16,7 @@ export function PlusOrder({
   priceMonth,
   priceYear,
   kaspiLink,
+  kaspiLinkYear,
   support,
   alreadyPlus,
   plusUntil,
@@ -25,6 +26,8 @@ export function PlusOrder({
   priceMonth: number;
   priceYear: number;
   kaspiLink: string;
+  /** Отдельная ссылка на годовую оплату. Пусто — платим по обычной. */
+  kaspiLinkYear: string;
   support: string;
   alreadyPlus: boolean;
   plusUntil: string | null;
@@ -65,6 +68,10 @@ export function PlusOrder({
     router.refresh();
   }
 
+  // У годовой оплаты обычно своя сумма, а значит и своя ссылка. Если владелец
+  // завёл только одну — платим по ней, это лучше, чем показать пустоту.
+  const payLink = (plan === "year" && kaspiLinkYear) || kaspiLink;
+
   if (sent) {
     return (
       <div className="space-y-3">
@@ -79,9 +86,9 @@ export function PlusOrder({
           </div>
         </div>
 
-        {kaspiLink ? (
+        {payLink ? (
           <a
-            href={kaspiLink}
+            href={payLink}
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full rounded-xl bg-tynysh py-3 text-center font-extrabold text-white"
