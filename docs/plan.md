@@ -66,7 +66,6 @@
 - [ ] Выполнить в Supabase → SQL Editor: `supabase/stage7.sql` (ТЫ)
 - [ ] Выполнить `supabase/stage8.sql` — цифры в админке (ТЫ)
 - [ ] Выполнить `supabase/stage9.sql` — чинит отказ Доса сразу после оплаты (ТЫ)
-- [ ] Выполнить `supabase/stage10.sql` — отдельная ссылка Kaspi на год (ТЫ)
 - [ ] Включить резервные копии: Supabase → Database → Backups (ТЫ)
 - [ ] Удалить **все** тестовые номера: Authentication → Phone → Test OTP (ТЫ)
       Пока они есть, любой, кто знает пару «номер + код», войдёт в этот аккаунт.

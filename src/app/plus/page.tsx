@@ -78,7 +78,6 @@ export default async function PlusPage() {
         priceMonth={setting("plus_price_month", 990)}
         priceYear={setting("plus_price_year", 7900)}
         kaspiLink={textOf("kaspi_link")}
-        kaspiLinkYear={textOf("kaspi_link_year")}
         support={textOf("support_contact")}
         alreadyPlus={Boolean(full?.is_plus)}
         plusUntil={full?.plus_until ?? null}

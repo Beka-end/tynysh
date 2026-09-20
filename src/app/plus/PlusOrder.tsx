@@ -16,7 +16,6 @@ export function PlusOrder({
   priceMonth,
   priceYear,
   kaspiLink,
-  kaspiLinkYear,
   support,
   alreadyPlus,
   plusUntil,
@@ -26,8 +25,6 @@ export function PlusOrder({
   priceMonth: number;
   priceYear: number;
   kaspiLink: string;
-  /** Отдельная ссылка на годовую оплату. Пусто — платим по обычной. */
-  kaspiLinkYear: string;
   support: string;
   alreadyPlus: boolean;
   plusUntil: string | null;
@@ -68,9 +65,9 @@ export function PlusOrder({
     router.refresh();
   }
 
-  // У годовой оплаты обычно своя сумма, а значит и своя ссылка. Если владелец
-  // завёл только одну — платим по ней, это лучше, чем показать пустоту.
-  const payLink = (plan === "year" && kaspiLinkYear) || kaspiLink;
+  // Сумму человек вводит в Kaspi руками, поэтому её надо держать у него
+  // перед глазами на самом экране оплаты, а не только в списке тарифов.
+  const amount = plan === "year" ? priceYear : priceMonth;
 
   if (sent) {
     return (
@@ -78,7 +75,8 @@ export function PlusOrder({
         <div className="rounded-2xl bg-dos p-4 text-sm leading-relaxed text-dos-text">
           <div className="mb-1 text-base font-bold">Заявка принята. Осталось два шага</div>
           <div className="mt-2">
-            <b>1.</b> Оплати по ссылке Kaspi.
+            <b>1.</b> Оплати по ссылке Kaspi. Сумму вводишь сам — впиши ровно{" "}
+            <b>{amount.toLocaleString("ru-RU")} ₸</b>.
           </div>
           <div>
             <b>2.</b> Пришли скриншот оплаты{support ? ` в ${support}` : " в поддержку"} —
@@ -86,9 +84,9 @@ export function PlusOrder({
           </div>
         </div>
 
-        {payLink ? (
+        {kaspiLink ? (
           <a
-            href={payLink}
+            href={kaspiLink}
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full rounded-xl bg-tynysh py-3 text-center font-extrabold text-white"
