@@ -73,6 +73,10 @@ export function OtpLogin({ channel }: { channel: Channel }) {
 
   const contactOk = isPhone ? isValidPhone(contact) : isValidEmail(contact);
   const minCodeLength = isPhone ? 4 : 6;
+  // Длину кода задаёт Supabase, и она не обязана быть шестёркой: у почты её
+  // можно поставить от 6 до 10 цифр. Поэтому поле не режет ввод под один
+  // размер — иначе вставленный код молча теряет хвост и никогда не подходит.
+  const maxCodeLength = 10;
 
   async function sendCode() {
     setBusy(true);
@@ -188,7 +192,7 @@ export function OtpLogin({ channel }: { channel: Channel }) {
           <>
             Письмо отправлено на {normalizeEmail(contact)}. Проверь и папку «Спам».
             Ссылку из письма открывай <b>в этом же браузере</b> — на другом
-            устройстве она не сработает. А шестизначный код из письма можно
+            устройстве она не сработает. А код из письма можно
             ввести сюда откуда угодно. Открывай <b>самое последнее</b> письмо:
             новое отключает предыдущее.
           </>
@@ -197,11 +201,12 @@ export function OtpLogin({ channel }: { channel: Channel }) {
       <input
         autoFocus
         value={code}
-        onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+        onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, maxCodeLength))}
         placeholder={isPhone ? "Код из SMS" : "Код из письма"}
         inputMode="numeric"
         autoComplete="one-time-code"
-        className={`${inputClass} text-center text-xl tracking-[0.5em]`}
+        maxLength={maxCodeLength}
+        className={`${inputClass} text-center text-xl tracking-[0.35em]`}
       />
       <button
         type="submit"
