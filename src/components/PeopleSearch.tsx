@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar } from "./Avatar";
+import { searchVariants } from "@/lib/translit";
 
 export type FoundUser = {
   id: string;
@@ -48,23 +49,32 @@ export function PeopleSearch({
   useEffect(() => {
     // Убираем «@» и знаки, которые ломают запрос к базе.
     const term = query.trim().replace(/^@+/, "").replace(/[%,()"'\\*]/g, " ").trim();
-    if (term.length < 2) {
-      setList([]);
-      setSearching(false);
-      return;
-    }
 
     setSearching(true);
     let cancelled = false;
     // Ждём, пока человек допечатает — иначе запрос уходит на каждую букву.
     const timer = setTimeout(async () => {
       const supabase = createClient();
-      const { data, error } = await supabase
+      let request = supabase
         .from("profiles")
         .select("id, name, handle, bio")
-        .or(`handle.ilike.%${term}%,name.ilike.%${term}%`)
         .neq("id", meId)
         .limit(20);
+
+      if (term.length === 0) {
+        // Пустой поиск — показываем тех, кто пришёл недавно. Пустой экран
+        // выглядит как «тут никого нет», даже когда люди есть.
+        request = request.order("created_at", { ascending: false });
+      } else {
+        // Ищем и само слово, и его вид в другой раскладке: «beka» должен
+        // находить «Бека», иначе человек решит, что друга в Tynysh нет.
+        const conditions = searchVariants(term)
+          .flatMap((v) => [`handle.ilike.%${v}%`, `name.ilike.%${v}%`])
+          .join(",");
+        request = request.or(conditions);
+      }
+
+      const { data, error } = await request;
 
       if (cancelled) return;
       setSearching(false);
@@ -74,7 +84,11 @@ export function PeopleSearch({
         return;
       }
       setError("");
-      setList(((data ?? []) as FoundUser[]).filter((u) => !blocked.includes(u.id)));
+      setList(
+        ((data ?? []) as FoundUser[])
+          .filter((u) => !blocked.includes(u.id))
+          .sort((a, b) => rank(a, term) - rank(b, term)),
+      );
     }, 300);
 
     return () => {
@@ -83,7 +97,7 @@ export function PeopleSearch({
     };
   }, [query, meId, blocked]);
 
-  const shortQuery = query.trim().replace(/^@+/, "").length < 2;
+  const isBrowsing = query.trim().replace(/^@+/, "").length === 0;
 
   return (
     <div className="px-1">
@@ -96,6 +110,12 @@ export function PeopleSearch({
 
       {error && (
         <div className="rounded-xl bg-alarm px-3 py-2 text-sm text-alarm-text">{error}</div>
+      )}
+
+      {isBrowsing && list.length > 0 && (
+        <p className="px-1 pb-1 text-xs font-bold uppercase tracking-wide text-tynysh-muted">
+          Кто уже в Tynysh
+        </p>
       )}
 
       {list.map((user) => {
@@ -125,11 +145,28 @@ export function PeopleSearch({
 
       {!searching && !error && list.length === 0 && (
         <p className="p-3 text-sm text-tynysh-muted">
-          {shortQuery
-            ? "Начни вводить @юзернейм или имя — хотя бы две буквы."
-            : "Никого не нашли. Проверь написание или позови человека в Tynysh."}
+          {isBrowsing
+            ? "Пока в Tynysh никого нет, кроме тебя. Позови друга — и он появится здесь."
+            : "Никого не нашли. Можно искать и латиницей, и кириллицей — «beka» найдёт «Бека»."}
         </p>
       )}
     </div>
   );
+}
+
+/**
+ * Совпадение в начале слова человек считает «тем самым», а совпадение
+ * в середине — случайным. Поэтому «бек» показывает сначала @beka,
+ * а уже потом Асанбека.
+ */
+function rank(user: FoundUser, term: string): number {
+  if (term.length === 0) return 0;
+  const variants = searchVariants(term);
+  const handle = user.handle.toLowerCase();
+  const name = user.name.toLowerCase();
+
+  if (variants.some((v) => handle.startsWith(v))) return 0;
+  if (variants.some((v) => name.startsWith(v))) return 1;
+  if (variants.some((v) => name.split(/\s+/).some((word) => word.startsWith(v)))) return 2;
+  return 3;
 }
