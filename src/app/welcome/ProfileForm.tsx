@@ -100,7 +100,8 @@ export function ProfileForm({ userId }: { userId: string }) {
         />
         <span>
           Мне есть 13 лет. Если мне 13–15 — родители знают, что я пользуюсь Tynysh.
-          Я прочитал(а){" "}
+          Я согласен(на), что мои данные хранятся и обрабатываются на серверах за
+          пределами Казахстана. Я прочитал(а){" "}
           <Link href="/terms" className="underline" target="_blank">
             условия
           </Link>{" "}
