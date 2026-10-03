@@ -31,6 +31,10 @@ export function PeopleSearch({
 }) {
   const [query, setQuery] = useState("");
   const [blocked, setBlocked] = useState<string[]>([]);
+  // Себя в результатах нет — иначе можно начать чат с самим собой. Но тогда
+  // поиск собственного юзернейма выглядит как «поиск сломан», поэтому свой
+  // профиль держим под рукой и говорим об этом прямо.
+  const [me, setMe] = useState<{ name: string; handle: string } | null>(null);
   const [list, setList] = useState<FoundUser[]>([]);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState("");
@@ -44,7 +48,13 @@ export function PeopleSearch({
       .then(({ data }) =>
         setBlocked(((data ?? []) as { blocked_id: string }[]).map((b) => b.blocked_id)),
       );
-  }, []);
+    void supabase
+      .from("profiles")
+      .select("name, handle")
+      .eq("id", meId)
+      .maybeSingle()
+      .then(({ data }) => setMe((data as { name: string; handle: string } | null) ?? null));
+  }, [meId]);
 
   useEffect(() => {
     // Убираем «@» и знаки, которые ломают запрос к базе.
@@ -52,7 +62,8 @@ export function PeopleSearch({
 
     setSearching(true);
     let cancelled = false;
-    // Ждём, пока человек допечатает — иначе запрос уходит на каждую букву.
+    // Небольшая задержка, чтобы запрос не уходил на каждую букву. Держим её
+    // короткой: подсказки должны появляться, пока человек ещё печатает.
     const timer = setTimeout(async () => {
       const supabase = createClient();
       let request = supabase
@@ -89,7 +100,7 @@ export function PeopleSearch({
           .filter((u) => !blocked.includes(u.id))
           .sort((a, b) => rank(a, term) - rank(b, term)),
       );
-    }, 300);
+    }, 150);
 
     return () => {
       cancelled = true;
@@ -98,6 +109,13 @@ export function PeopleSearch({
   }, [query, meId, blocked]);
 
   const isBrowsing = query.trim().replace(/^@+/, "").length === 0;
+  const typed = query.trim().replace(/^@+/, "").toLowerCase();
+  const looksLikeMe =
+    typed.length > 0 &&
+    Boolean(me) &&
+    searchVariants(typed).some(
+      (v) => me!.handle.toLowerCase().includes(v) || me!.name.toLowerCase().includes(v),
+    );
 
   return (
     <div className="px-1">
@@ -143,11 +161,17 @@ export function PeopleSearch({
         );
       })}
 
+      {searching && list.length === 0 && (
+        <p className="p-3 text-sm text-tynysh-muted">Ищем…</p>
+      )}
+
       {!searching && !error && list.length === 0 && (
         <p className="p-3 text-sm text-tynysh-muted">
           {isBrowsing
             ? "Пока в Tynysh никого нет, кроме тебя. Позови друга — и он появится здесь."
-            : "Никого не нашли. Можно искать и латиницей, и кириллицей — «beka» найдёт «Бека»."}
+            : looksLikeMe
+              ? `Это ты и есть — @${me?.handle}. Себя в списке не показываем, попробуй найти кого-то другого.`
+              : "Никого не нашли. Можно искать и латиницей, и кириллицей — «beka» найдёт «Бека»."}
         </p>
       )}
     </div>
