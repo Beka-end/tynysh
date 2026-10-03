@@ -146,17 +146,8 @@ export default async function AdminPage() {
           <Row label="Модель Доса" value={DOS_MODEL} where="в коде: src/lib/dos-config.ts" />
           <Row
             label="Бесплатный пакет"
-            value={`${setting("dos_free_total") ?? "—"} сообщений всего`}
+            value={`${setting("dos_free_total") ?? "—"} сообщений навсегда, без добавки по дням`}
             where="app_settings → dos_free_total"
-          />
-          <Row
-            label="Сверх пакета"
-            value={
-              setting("dos_free_daily")
-                ? `${setting("dos_free_daily")} в день`
-                : "не выдаётся"
-            }
-            where="app_settings → dos_free_daily"
           />
           <Row
             label="Потолок у Plus"
