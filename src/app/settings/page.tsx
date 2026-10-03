@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireProfile } from "@/lib/session";
 import { Logo } from "@/components/Logo";
 import { ChangePassword } from "./ChangePassword";
+import { PASSWORD_LOGIN_ENABLED } from "@/lib/login-config";
 
 // Страница всегда считается на сервере: она смотрит на куки с сессией.
 export const dynamic = "force-dynamic";
@@ -25,7 +26,9 @@ export default async function SettingsPage() {
         <div className="opacity-60">@{me.handle}</div>
       </div>
 
-      <ChangePassword />
+      {/* Пока вход по паролю выключен, задавать пароль бессмысленно:
+          он никуда не подойдёт, а человек будет думать, что защитил аккаунт. */}
+      {PASSWORD_LOGIN_ENABLED && <ChangePassword />}
 
       <div className="mt-8 space-y-2 text-sm">
         <Link href="/plus" className="block text-tynysh underline">
@@ -49,8 +52,9 @@ export default async function SettingsPage() {
       </form>
 
       <p className="mt-3 text-xs leading-relaxed text-tynysh-muted">
-        Перед выходом убедись, что помнишь пароль: восстановить его письмом пока
-        нельзя. Если забыл — напиши в поддержку, вернём доступ вручную.
+        Выйти можно спокойно: вход в Tynysh идёт по коду из письма, пароля нет
+        и забыть его нельзя. Чтобы вернуться, просто запроси новый код на свою
+        почту.
       </p>
     </main>
   );
