@@ -5,16 +5,18 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { dbErrorToRussian } from "@/lib/errors";
 
-type Plan = "month" | "year";
-
 /**
  * Оплата пока ручная: человек платит по ссылке Kaspi и присылает скрин,
  * админ включает Plus кнопкой. Автосписание — позже, когда будет что списывать.
+ *
+ * Тариф один — месяц. Годовой убран: при потолке в 10 сообщений в день он
+ * выходил в минус (7 900 ₸ — это 658 ₸ в месяц против 978 ₸ предельного
+ * расхода), а год вперёд за непроверенный продукт — плохая сделка для обеих
+ * сторон. Вернём, когда станет видно, сколько люди пишут на самом деле.
  */
 export function PlusOrder({
   userId,
   priceMonth,
-  priceYear,
   kaspiLink,
   support,
   alreadyPlus,
@@ -23,7 +25,6 @@ export function PlusOrder({
 }: {
   userId: string;
   priceMonth: number;
-  priceYear: number;
   kaspiLink: string;
   support: string;
   alreadyPlus: boolean;
@@ -31,7 +32,6 @@ export function PlusOrder({
   hadPending: boolean;
 }) {
   const router = useRouter();
-  const [plan, setPlan] = useState<Plan>("month");
   const [sent, setSent] = useState(hadPending);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -53,8 +53,8 @@ export function PlusOrder({
     const supabase = createClient();
     const { error: orderError } = await supabase.from("plus_orders").insert({
       user_id: userId,
-      plan,
-      amount: plan === "month" ? priceMonth : priceYear,
+      plan: "month",
+      amount: priceMonth,
     });
     setBusy(false);
     if (orderError) {
@@ -67,7 +67,7 @@ export function PlusOrder({
 
   // Сумму человек вводит в Kaspi руками, поэтому её надо держать у него
   // перед глазами на самом экране оплаты, а не только в списке тарифов.
-  const amount = plan === "year" ? priceYear : priceMonth;
+  const amount = priceMonth;
 
   if (sent) {
     return (
@@ -113,25 +113,11 @@ export function PlusOrder({
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-2">
-        {(
-          [
-            ["month", priceMonth, "в месяц"],
-            ["year", priceYear, "в год · −33%"],
-          ] as [Plan, number, string][]
-        ).map(([key, price, label]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setPlan(key)}
-            className={`flex-1 rounded-2xl p-3 text-left ${
-              plan === key ? "border-2 border-tynysh" : "border border-violet-100"
-            }`}
-          >
-            <div className="font-extrabold">{price.toLocaleString("ru-RU")} ₸</div>
-            <div className="text-xs opacity-60">{label}</div>
-          </button>
-        ))}
+      <div className="rounded-2xl border-2 border-tynysh p-4">
+        <div className="text-2xl font-extrabold">
+          {priceMonth.toLocaleString("ru-RU")} ₸
+        </div>
+        <div className="text-xs opacity-60">в месяц · отменить можно когда угодно</div>
       </div>
 
       <button

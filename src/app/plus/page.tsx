@@ -76,7 +76,6 @@ export default async function PlusPage() {
       <PlusOrder
         userId={userId}
         priceMonth={setting("plus_price_month", 990)}
-        priceYear={setting("plus_price_year", 7900)}
         kaspiLink={textOf("kaspi_link")}
         support={textOf("support_contact")}
         alreadyPlus={Boolean(full?.is_plus)}

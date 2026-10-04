@@ -28,6 +28,7 @@ export function DosChat({
   left: initialLeft,
   plus,
   freeTotal,
+  plusDaily,
   plusLeftToday,
 }: {
   meId: string;
@@ -35,6 +36,8 @@ export function DosChat({
   left: number | null;
   plus: boolean;
   freeTotal: number;
+  /** Сколько сообщений в день даёт Plus. null — потолка нет. */
+  plusDaily: number | null;
   /** Сколько сообщений осталось сегодня у подписчика. null — потолка нет. */
   plusLeftToday: number | null;
 }) {
@@ -354,20 +357,19 @@ export function DosChat({
               Бесплатно — {freeTotal} сообщений Досу на знакомство. С Plus:
             </p>
             <ul className="mb-5 space-y-1.5 text-sm">
-              <li>✓ Разговоры с Досом без лимита</li>
+              <li>
+                ✓{" "}
+                {plusDaily
+                  ? `${plusDaily} сообщений Досу каждый день — счёт обнуляется утром`
+                  : "Разговоры с Досом без лимита"}
+              </li>
               <li>✓ Дос помнит разговоры намного дольше</li>
               <li>✓ Итог недели по дневнику настроения</li>
               <li>✓ Никакой рекламы — никогда</li>
             </ul>
-            <div className="mb-3 flex gap-2">
-              <div className="flex-1 rounded-2xl border-2 border-tynysh p-3">
-                <div className="font-extrabold">990 ₸</div>
-                <div className="text-xs opacity-60">в месяц</div>
-              </div>
-              <div className="flex-1 rounded-2xl border border-violet-100 p-3">
-                <div className="font-extrabold">7 900 ₸</div>
-                <div className="text-xs opacity-60">в год · −33%</div>
-              </div>
+            <div className="mb-3 rounded-2xl border-2 border-tynysh p-3">
+              <div className="text-xl font-extrabold">990 ₸</div>
+              <div className="text-xs opacity-60">в месяц · отменить можно когда угодно</div>
             </div>
             <Link
               href="/plus"

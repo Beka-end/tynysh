@@ -17,15 +17,23 @@ export default async function DosPage() {
 
   // Профиль, история и остаток пакета — одним заходом.
   // Историю Доса видит только сам человек — это правило стоит в базе (RLS).
-  const [{ data: profile }, { data: rows }, { data: statusRows }] = await Promise.all([
-    profileQuery(supabase, userId),
-    supabase
-      .from("dos_messages")
-      .select("id, role, text, created_at")
-      .order("created_at", { ascending: false })
-      .limit(200),
-    supabase.rpc("dos_status"),
-  ]);
+  const [{ data: profile }, { data: rows }, { data: statusRows }, { data: capRow }] =
+    await Promise.all([
+      profileQuery(supabase, userId),
+      supabase
+        .from("dos_messages")
+        .select("id, role, text, created_at")
+        .order("created_at", { ascending: false })
+        .limit(200),
+      supabase.rpc("dos_status"),
+      // Потолок Plus нужен окну оплаты: обещать «без лимита», когда лимит есть,
+      // нельзя — человек платит в этом окне.
+      supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "dos_plus_daily")
+        .maybeSingle(),
+    ]);
   guardProfile(profile);
 
   const history = ((rows ?? []) as DosMessage[]).slice().reverse();
@@ -38,6 +46,7 @@ export default async function DosPage() {
       left={status?.plus_active ? null : (status?.left_total ?? null)}
       plus={Boolean(status?.plus_active)}
       freeTotal={status?.free_total ?? 0}
+      plusDaily={((capRow as { value?: number } | null)?.value ?? 0) || null}
       plusLeftToday={status?.plus_active ? (status?.plus_left_today ?? null) : null}
     />
   );
