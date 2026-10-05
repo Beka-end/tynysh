@@ -14,7 +14,7 @@ import { isValidEmail, normalizeEmail } from "@/lib/email";
 export type Channel = "phone" | "email";
 
 const inputClass =
-  "w-full rounded-xl border border-violet-100 bg-white px-4 py-3 outline-none focus:border-violet-400";
+  "w-full rounded-xl border border-tynysh-line bg-white px-4 py-3 outline-none focus:border-tynysh";
 /** Столько Supabase ждёт между двумя кодами на один адрес. */
 const RESEND_SECONDS = 60;
 const SENT_KEY = "tynysh-otp-sent";

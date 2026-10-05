@@ -65,7 +65,7 @@ export function NewGroup({ meId }: { meId: string }) {
         value={title}
         onChange={(e) => setTitle(e.target.value.slice(0, 60))}
         placeholder="Название группы, например 11Б"
-        className="w-full rounded-xl border border-violet-100 px-3 py-2 outline-none focus:border-violet-400"
+        className="w-full rounded-xl border border-tynysh-line px-3 py-2 outline-none focus:border-tynysh"
       />
 
       <div className="px-1 pt-1 text-xs font-bold opacity-60">

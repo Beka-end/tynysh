@@ -213,7 +213,7 @@ export function ChatRoom({
 
   return (
     <div className="mx-auto flex h-dvh max-w-md flex-col bg-white">
-      <header className="flex items-center gap-2 border-b border-violet-100 px-2 py-3">
+      <header className="flex items-center gap-2 border-b border-tynysh-line px-2 py-3">
         <Link href="/chats" className="px-1 text-2xl leading-none opacity-60" title="Назад">
           ‹
         </Link>
@@ -238,7 +238,7 @@ export function ChatRoom({
       </header>
 
       {partner && showAbout && (
-        <div className="border-b border-violet-100 bg-white px-4 py-3 text-sm">
+        <div className="border-b border-tynysh-line bg-white px-4 py-3 text-sm">
           <div className="font-bold">
             {partner.name} <span className="font-medium opacity-50">@{partner.handle}</span>
           </div>
@@ -261,7 +261,7 @@ export function ChatRoom({
               ? "Сейчас этот человек не может тебе писать, а его сообщения ты не видишь."
               : "После блокировки он не сможет тебе писать, а его сообщения пропадут из чатов. Он об этом не узнает. Разблокировать можно в любой момент."}
           </p>
-          <div className="mt-3 border-t border-violet-100 pt-3">
+          <div className="mt-3 border-t border-tynysh-line pt-3">
             {reportSent ? (
               <p className="text-xs leading-relaxed text-tynysh-muted">
                 Жалоба отправлена. Мы посмотрим её в ближайшее время. Если человек
@@ -275,7 +275,7 @@ export function ChatRoom({
                   onChange={(e) => setReportText(e.target.value.slice(0, 500))}
                   placeholder="Что случилось? Например: просит фото, угрожает, оскорбляет"
                   rows={2}
-                  className="w-full rounded-xl border border-violet-100 px-3 py-2 text-sm outline-none focus:border-violet-400"
+                  className="w-full rounded-xl border border-tynysh-line px-3 py-2 text-sm outline-none focus:border-tynysh"
                 />
                 <button
                   type="button"
@@ -351,7 +351,7 @@ export function ChatRoom({
       )}
 
       {blocked && partner ? (
-        <div className="border-t border-violet-100 p-3 text-center text-sm">
+        <div className="border-t border-tynysh-line p-3 text-center text-sm">
           <p className="mb-2 text-tynysh-muted">
             Ты заблокировал(а) {partner.name}. Переписка закрыта с обеих сторон.
           </p>
@@ -366,7 +366,7 @@ export function ChatRoom({
         </div>
       ) : (
         <form
-          className="flex gap-2 border-t border-violet-100 p-3"
+          className="flex gap-2 border-t border-tynysh-line p-3"
           onSubmit={(e) => {
             e.preventDefault();
             void send();

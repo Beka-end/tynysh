@@ -32,7 +32,7 @@ export function SetupHint() {
           <b>Deployments → ⋯ → Redeploy</b>. Ключи подхватываются в момент сборки.
         </li>
       </ol>
-      <p className="mt-3 text-xs text-[#8A85A3]">
+      <p className="mt-3 text-xs text-tynysh-muted">
         Подробно и по шагам — в файле <code>SETUP.md</code>.
       </p>
     </div>

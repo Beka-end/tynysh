@@ -8,7 +8,7 @@ import { dbErrorToRussian } from "@/lib/errors";
 import { HANDLE_RE, MIN_AGE, checkBirthYear, cleanHandle } from "@/lib/profile";
 
 const inputClass =
-  "w-full rounded-xl border border-violet-100 bg-white px-4 py-3 outline-none focus:border-violet-400";
+  "w-full rounded-xl border border-tynysh-line bg-white px-4 py-3 outline-none focus:border-tynysh";
 
 export function ProfileForm({ userId }: { userId: string }) {
   const router = useRouter();
@@ -96,7 +96,7 @@ export function ProfileForm({ userId }: { userId: string }) {
           type="checkbox"
           checked={agreed}
           onChange={(e) => setAgreed(e.target.checked)}
-          className="mt-0.5 h-4 w-4 shrink-0 accent-[#5B4BDB]"
+          className="mt-0.5 h-4 w-4 shrink-0 accent-[#2E6FA8]"
         />
         <span>
           Мне есть 13 лет. Если мне 13–15 — родители знают, что я пользуюсь Tynysh.

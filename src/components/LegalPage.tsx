@@ -53,7 +53,7 @@ export async function LegalPage({ file }: { file: string }) {
 
       <Markdown text={filled} />
 
-      <p className="mt-8 border-t border-violet-100 pt-4 text-xs leading-relaxed text-[#8A85A3]">
+      <p className="mt-8 border-t border-tynysh-line pt-4 text-xs leading-relaxed text-tynysh-muted">
         Если тебе плохо прямо сейчас — звони <b>150</b> (линия доверия, бесплатно,
         круглосуточно) или <b>112</b>, если опасность прямо сейчас.
       </p>

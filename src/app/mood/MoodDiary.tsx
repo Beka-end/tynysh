@@ -109,7 +109,7 @@ export function MoodDiary({
               onBlur={saveNote}
               rows={2}
               placeholder="Что было сегодня? Одна строчка — этого достаточно"
-              className="w-full rounded-xl border border-violet-100 px-3 py-2 text-sm outline-none focus:border-violet-400"
+              className="w-full rounded-xl border border-tynysh-line px-3 py-2 text-sm outline-none focus:border-tynysh"
             />
           </div>
         )}
@@ -181,7 +181,7 @@ export function MoodDiary({
         )}
       </div>
 
-      <p className="mt-6 text-xs leading-relaxed text-[#8A85A3]">
+      <p className="mt-6 text-xs leading-relaxed text-tynysh-muted">
         Дневник видишь только ты — ни родители, ни админы в него не заглядывают.
         Если тебе плохо прямо сейчас — звони <b>150</b>.
       </p>

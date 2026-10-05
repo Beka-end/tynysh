@@ -83,7 +83,7 @@ export default async function PlusPage() {
         hadPending={pending}
       />
 
-      <p className="mt-6 text-xs leading-relaxed text-[#8A85A3]">
+      <p className="mt-6 text-xs leading-relaxed text-tynysh-muted">
         Если тебе плохо прямо сейчас — звони <b>150</b>. Это бесплатно, круглосуточно
         и не требует никакой подписки.
       </p>

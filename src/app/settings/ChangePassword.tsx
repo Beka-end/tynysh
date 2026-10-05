@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { authErrorToRussian } from "@/lib/errors";
 
 const inputClass =
-  "w-full rounded-xl border border-violet-100 bg-white px-4 py-3 outline-none focus:border-violet-400";
+  "w-full rounded-xl border border-tynysh-line bg-white px-4 py-3 outline-none focus:border-tynysh";
 
 /** Смена пароля. Заодно это способ задать пароль тем, кто вошёл по коду из письма. */
 export function ChangePassword() {
@@ -59,7 +59,7 @@ export function ChangePassword() {
       </button>
 
       {done && (
-        <div className="rounded-xl bg-[#E6F7EF] px-3 py-2 text-sm">
+        <div className="rounded-xl bg-calm px-3 py-2 text-sm">
           Пароль изменён. Запомни его — восстановить письмом пока нельзя.
         </div>
       )}

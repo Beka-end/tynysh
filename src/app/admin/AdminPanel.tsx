@@ -92,7 +92,7 @@ export function AdminPanel({
           <p className="p-4 text-sm text-tynysh-muted">Заявок на оплату пока нет.</p>
         ) : (
           orders.map((order) => (
-            <div key={order.id} className="mb-2 rounded-xl border border-violet-100 p-3">
+            <div key={order.id} className="mb-2 rounded-xl border border-tynysh-line p-3">
               <div className="flex items-baseline justify-between">
                 <div className="font-bold">
                   {order.name} <span className="font-medium opacity-50">@{order.handle}</span>
@@ -159,7 +159,7 @@ export function AdminPanel({
           <p className="p-4 text-sm text-tynysh-muted">Жалоб нет. Это хорошая новость.</p>
         ) : (
           reports.map((report) => (
-            <div key={report.id} className="mb-2 rounded-xl border border-violet-100 p-3">
+            <div key={report.id} className="mb-2 rounded-xl border border-tynysh-line p-3">
               <div className="flex items-baseline justify-between">
                 <div className="font-bold">
                   На {report.target_name}{" "}

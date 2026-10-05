@@ -42,7 +42,7 @@ export function ShellSkeleton({ rows = 4 }: { rows?: number }) {
 export function ChatSkeleton() {
   return (
     <div className="mx-auto flex h-dvh max-w-md animate-pulse flex-col bg-white">
-      <header className="flex items-center gap-3 border-b border-violet-100 px-4 py-3">
+      <header className="flex items-center gap-3 border-b border-tynysh-line px-4 py-3">
         <div className="h-10 w-10 rounded-full bg-slate-100" />
         <div className="flex-1 space-y-2">
           <Line w="w-1/3" />
@@ -51,10 +51,10 @@ export function ChatSkeleton() {
       </header>
       <div className="flex-1 space-y-3 bg-tynysh-bg p-4">
         <div className="h-9 w-2/3 rounded-2xl bg-white" />
-        <div className="ml-auto h-9 w-1/2 rounded-2xl bg-violet-100" />
+        <div className="ml-auto h-9 w-1/2 rounded-2xl bg-tynysh-soft" />
         <div className="h-9 w-3/5 rounded-2xl bg-white" />
       </div>
-      <div className="border-t border-violet-100 p-3">
+      <div className="border-t border-tynysh-line p-3">
         <div className="h-10 rounded-full bg-tynysh-bg" />
       </div>
     </div>

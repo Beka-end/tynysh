@@ -123,7 +123,7 @@ export function PeopleSearch({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder}
-        className="mb-2 w-full rounded-xl border border-violet-100 px-3 py-2 outline-none focus:border-violet-400"
+        className="mb-2 w-full rounded-xl border border-tynysh-line px-3 py-2 outline-none focus:border-tynysh"
       />
 
       {error && (
@@ -145,7 +145,7 @@ export function PeopleSearch({
             disabled={busyId === user.id}
             onClick={() => onPick(user)}
             className={`flex w-full items-center gap-3 rounded-xl p-2.5 text-left ${
-              chosen ? "bg-violet-50" : "hover:bg-slate-50"
+              chosen ? "bg-tynysh-soft" : "hover:bg-tynysh-soft"
             } disabled:opacity-50`}
           >
             <Avatar name={user.name} size={36} />

@@ -55,11 +55,11 @@ export function AppShell({
 
       <div className="flex-1 px-2 pb-4">{children}</div>
 
-      <p className="px-5 pb-2 text-xs leading-relaxed text-[#8A85A3]">
+      <p className="px-5 pb-2 text-xs leading-relaxed text-tynysh-muted">
         Если тебе плохо прямо сейчас — звони <b>150</b> (линия доверия, бесплатно,
         круглосуточно) или <b>112</b>, если опасность прямо сейчас.
       </p>
-      <p className="px-5 pb-5 text-xs text-[#8A85A3]">
+      <p className="px-5 pb-5 text-xs text-tynysh-muted">
         <Link href="/terms" className="underline">
           Соглашение
         </Link>{" "}

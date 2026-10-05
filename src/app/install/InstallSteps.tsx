@@ -35,7 +35,7 @@ export function InstallSteps() {
 
   if (installed) {
     return (
-      <div className="rounded-2xl bg-[#E6F7EF] p-4 text-sm">
+      <div className="rounded-2xl bg-calm p-4 text-sm">
         <div className="font-bold">Уже установлено</div>
         <div className="opacity-80">Ты открыл Tynysh как приложение — всё на месте.</div>
       </div>
@@ -106,7 +106,7 @@ function Card({
   return (
     <div
       className={`rounded-2xl p-4 text-sm leading-relaxed ${
-        active ? "bg-tynysh-soft" : "border border-violet-100"
+        active ? "bg-tynysh-soft" : "border border-tynysh-line"
       }`}
     >
       <div className="mb-1.5 flex items-center gap-2 font-bold">

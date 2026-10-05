@@ -40,7 +40,7 @@ export default async function ChatsPage() {
       )}
       <Link
         href="/dos"
-        className="mb-1 flex w-full items-center gap-3 rounded-xl p-2.5 text-left hover:bg-slate-50"
+        className="mb-1 flex w-full items-center gap-3 rounded-xl p-2.5 text-left hover:bg-tynysh-soft"
       >
         <Avatar name="Дос" isAI />
         <div className="min-w-0 flex-1">
@@ -63,7 +63,7 @@ export default async function ChatsPage() {
             <li key={row.chat_id}>
               <Link
                 href={`/chats/${row.chat_id}`}
-                className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left hover:bg-slate-50"
+                className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left hover:bg-tynysh-soft"
               >
                 <Avatar name={chatName(row)} />
                 <div className="min-w-0 flex-1">

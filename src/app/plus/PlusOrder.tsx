@@ -38,7 +38,7 @@ export function PlusOrder({
 
   if (alreadyPlus) {
     return (
-      <div className="rounded-2xl bg-[#E6F7EF] p-4 text-sm">
+      <div className="rounded-2xl bg-calm p-4 text-sm">
         <div className="font-bold">Дос Plus активен</div>
         <div className="opacity-70">
           {plusUntil ? `Действует до ${plusUntil}` : "Без ограничения по сроку"}
@@ -72,7 +72,7 @@ export function PlusOrder({
   if (sent) {
     return (
       <div className="space-y-3">
-        <div className="rounded-2xl bg-dos p-4 text-sm leading-relaxed text-dos-text">
+        <div className="rounded-2xl bg-tynysh-soft p-4 text-sm leading-relaxed text-tynysh-dark">
           <div className="mb-1 text-base font-bold">Заявка принята. Осталось два шага</div>
           <div className="mt-2">
             <b>1.</b> Оплати по ссылке Kaspi. Сумму вводишь сам — впиши ровно{" "}

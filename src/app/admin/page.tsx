@@ -38,7 +38,7 @@ function Group({
   items: [string, number][];
 }) {
   return (
-    <div className="rounded-xl border border-violet-100 p-3">
+    <div className="rounded-xl border border-tynysh-line p-3">
       <div className="text-sm font-bold">{title}</div>
       {hint && <div className="mb-2 text-xs text-tynysh-muted">{hint}</div>}
       <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -140,7 +140,7 @@ export default async function AdminPage() {
         </div>
       )}
 
-      <details className="mb-4 rounded-xl border border-violet-100 px-3 py-2 text-sm">
+      <details className="mb-4 rounded-xl border border-tynysh-line px-3 py-2 text-sm">
         <summary className="cursor-pointer font-bold">Что сейчас настроено</summary>
         <dl className="mt-2 space-y-1.5">
           <Row label="Модель Доса" value={DOS_MODEL} where="в коде: src/lib/dos-config.ts" />

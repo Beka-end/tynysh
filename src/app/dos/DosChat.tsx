@@ -175,7 +175,7 @@ export function DosChat({
 
   return (
     <div className="mx-auto flex h-dvh max-w-md flex-col bg-white">
-      <header className="flex items-center gap-2 border-b border-violet-100 px-2 py-3">
+      <header className="flex items-center gap-2 border-b border-tynysh-line px-2 py-3">
         {/* Когда чатов нет, уходить отсюда некуда — разговор с Досом и есть
             главный экран. Стрелка «назад» вела бы в пустоту. */}
         {CHATS_ENABLED && (
@@ -220,7 +220,7 @@ export function DosChat({
 
       <div className="flex-1 overflow-y-auto bg-tynysh-bg px-3 py-4">
         {crisis && (
-          <div className="mb-3 rounded-2xl bg-alarm p-4 text-sm text-[#5A1F17]">
+          <div className="mb-3 rounded-2xl bg-alarm p-4 text-sm text-alarm-text">
             <div className="mb-1 text-base font-bold">
               Ты не один. Помощь есть прямо сейчас
             </div>
@@ -248,10 +248,15 @@ export function DosChat({
 
         {messages.length === 0 && (
           <div className="mt-8 px-4 text-center">
-            <div className="mb-2 text-4xl">☼</div>
-            <p className="text-sm leading-relaxed text-tynysh-muted">
-              Это Дос. Ему можно написать то, что не говоришь вслух. Переписку не
-              видит никто, кроме тебя, — даже родители и админы.
+            <div className="mb-3 text-4xl">☁</div>
+            <p className="text-base font-bold leading-snug">
+              Можно начать с чего угодно.
+            </p>
+            {/* Самый частый барьер — не стыд, а «я не знаю, как это сказать».
+                Поэтому сразу разрешаем начать с незнания. */}
+            <p className="mt-1.5 text-sm leading-relaxed text-tynysh-muted">
+              Даже с «не знаю, что сказать». Переписку не видит никто, кроме
+              тебя, — ни родители, ни админы.
             </p>
           </div>
         )}
@@ -274,7 +279,7 @@ export function DosChat({
                   className={`max-w-[78%] whitespace-pre-wrap px-3.5 py-2 text-[15px] leading-snug ${
                     mine
                       ? "rounded-2xl rounded-br-md bg-tynysh text-white"
-                      : "rounded-2xl rounded-bl-md bg-dos text-[#3A2E12]"
+                      : "rounded-2xl rounded-bl-md border border-tynysh-line bg-dos text-dos-text"
                   }`}
                 >
                   {message.text}
@@ -300,7 +305,7 @@ export function DosChat({
               key={starter}
               type="button"
               onClick={() => setText(starter)}
-              className="shrink-0 rounded-full border border-violet-100 bg-white px-3 py-1.5 text-sm"
+              className="shrink-0 rounded-full border border-tynysh-line bg-white px-3 py-1.5 text-sm"
             >
               {starter}
             </button>
@@ -309,7 +314,7 @@ export function DosChat({
       )}
 
       {dailyDone && (
-        <div className="mx-3 mb-2 rounded-2xl bg-dos px-4 py-3 text-sm leading-relaxed text-dos-text">
+        <div className="mx-3 mb-2 rounded-2xl bg-tynysh-soft px-4 py-3 text-sm leading-relaxed text-tynysh-dark">
           <b>На сегодня хватит.</b> Завтра Дос снова будет свободен — так подписка
           остаётся 990 ₸, а не дорожает. Если тебе плохо прямо сейчас, звони{" "}
           <b>150</b>: бесплатно, круглосуточно и без всяких лимитов.
@@ -339,7 +344,7 @@ export function DosChat({
       )}
 
       <form
-        className="flex gap-2 border-t border-violet-100 p-3"
+        className="flex gap-2 border-t border-tynysh-line p-3"
         onSubmit={(e) => {
           e.preventDefault();
           void send(text);

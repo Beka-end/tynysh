@@ -39,7 +39,7 @@ export default async function GroupsPage() {
             <li key={group.chat_id}>
               <Link
                 href={`/chats/${group.chat_id}`}
-                className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left hover:bg-slate-50"
+                className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left hover:bg-tynysh-soft"
               >
                 <Avatar name={group.chat_title ?? "Группа"} />
                 <div className="min-w-0 flex-1">
