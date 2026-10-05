@@ -33,7 +33,11 @@ export function profileQuery(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
 ) {
-  return supabase.from("profiles").select("id, name, handle, banned").eq("id", userId).maybeSingle();
+  return supabase
+    .from("profiles")
+    .select("id, name, handle, banned, is_admin")
+    .eq("id", userId)
+    .maybeSingle();
 }
 
 /**
@@ -51,7 +55,7 @@ export async function requireProfile() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, name, handle, banned")
+    .select("id, name, handle, banned, is_admin")
     .eq("id", user.id)
     .maybeSingle();
   return { supabase, me: guardProfile(profile) };

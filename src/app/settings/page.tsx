@@ -30,6 +30,18 @@ export default async function SettingsPage() {
           он никуда не подойдёт, а человек будет думать, что защитил аккаунт. */}
       {PASSWORD_LOGIN_ENABLED && <ChangePassword />}
 
+      {/* Вход в админку жил на экране со списком чатов. Чатов нет — и владелец
+          остался без единственной двери к оплатам и жалобам. Настройки есть
+          всегда, поэтому дверь теперь здесь. */}
+      {(me as { is_admin?: boolean }).is_admin && (
+        <Link
+          href="/admin"
+          className="mb-5 block rounded-xl bg-tynysh-soft px-3 py-2.5 text-sm font-bold text-tynysh"
+        >
+          Админка — оплаты, жалобы, цифры
+        </Link>
+      )}
+
       <div className="mt-8 space-y-2 text-sm">
         <Link href="/plus" className="block text-tynysh underline">
           Дос Plus
