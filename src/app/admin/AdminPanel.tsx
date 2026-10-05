@@ -41,6 +41,10 @@ export function AdminPanel({
   const router = useRouter();
   const [tab, setTab] = useState<"orders" | "reports">("orders");
   const [busy, setBusy] = useState("");
+  // Разобранные заявки по умолчанию прячем. Когда они лежат вперемешку
+  // с новыми, невозможно понять, с чем ещё надо что-то делать: включил
+  // человеку Plus, а строчка осталась на месте — и кажется, что не сработало.
+  const [showDone, setShowDone] = useState(false);
   const [error, setError] = useState("");
 
   async function run(key: string, fn: string, args: Record<string, unknown>) {
@@ -56,7 +60,9 @@ export function AdminPanel({
     router.refresh();
   }
 
-  const waiting = orders.filter((o) => o.status === "pending").length;
+  const pending = orders.filter((o) => o.status === "pending");
+  const waiting = pending.length;
+  const visibleOrders = showDone ? orders : pending;
   const fresh = reports.filter((r) => r.status === "new").length;
 
   return (
@@ -87,11 +93,34 @@ export function AdminPanel({
         </div>
       )}
 
+      {tab === "orders" && (
+        <p className="mb-2 flex items-center justify-between text-xs text-tynysh-muted">
+          <span>
+            {waiting > 0
+              ? `Ждут решения: ${waiting}`
+              : "Все заявки разобраны"}
+          </span>
+          {orders.length > waiting && (
+            <button
+              type="button"
+              onClick={() => setShowDone((v) => !v)}
+              className="font-bold text-tynysh underline"
+            >
+              {showDone ? "скрыть разобранные" : `показать разобранные (${orders.length - waiting})`}
+            </button>
+          )}
+        </p>
+      )}
+
       {tab === "orders" &&
-        (orders.length === 0 ? (
-          <p className="p-4 text-sm text-tynysh-muted">Заявок на оплату пока нет.</p>
+        (visibleOrders.length === 0 ? (
+          <p className="p-4 text-sm text-tynysh-muted">
+            {orders.length === 0
+              ? "Заявок на оплату пока нет."
+              : "Новых заявок нет — все разобраны."}
+          </p>
         ) : (
-          orders.map((order) => (
+          visibleOrders.map((order) => (
             <div key={order.id} className="mb-2 rounded-xl border border-tynysh-line p-3">
               <div className="flex items-baseline justify-between">
                 <div className="font-bold">
