@@ -250,6 +250,9 @@ export function DosChat({
           <div className="mt-8 px-4 text-center">
             <div className="mb-3 text-4xl">☁</div>
             <p className="text-base font-bold leading-snug">
+              Меня зовут Дос — это «друг» по-казахски.
+            </p>
+            <p className="mt-1.5 text-sm leading-relaxed text-tynysh-dark">
               Можно начать с чего угодно.
             </p>
             {/* Самый частый барьер — не стыд, а «я не знаю, как это сказать».

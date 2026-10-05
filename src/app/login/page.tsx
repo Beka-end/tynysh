@@ -38,9 +38,16 @@ export default async function LoginPage({
         <p className="mt-2 text-2xl font-extrabold leading-tight">
           Выдохни. Здесь можно как есть.
         </p>
-        <p className="mt-2 mb-8 text-base leading-relaxed text-tynysh-muted">
+        <p className="mt-2 text-base leading-relaxed text-tynysh-muted">
           Не надо подбирать слова и объяснять, почему. Тебя не оценят,
           не перебьют и никому не перескажут.
+        </p>
+        {/* Два имени — приложение и собеседник — человек видит как путаницу,
+            пока ему не сказали, что они значат. Сказали — и это уже не две
+            непонятные вещи, а одна понятная фраза. */}
+        <p className="mt-3 mb-8 text-sm leading-relaxed text-tynysh-muted">
+          <b>Tynysh</b> — «спокойно» по-казахски. Внутри тебя ждёт{" "}
+          <b>Дос</b> — «друг».
         </p>
 
         {error && (
