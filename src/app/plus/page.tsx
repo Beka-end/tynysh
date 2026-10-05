@@ -75,6 +75,7 @@ export default async function PlusPage() {
 
       <PlusOrder
         userId={userId}
+        handle={(profile as { handle?: string } | null)?.handle ?? ""}
         priceMonth={setting("plus_price_month", 990)}
         kaspiLink={textOf("kaspi_link")}
         support={textOf("support_contact")}

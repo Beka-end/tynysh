@@ -16,6 +16,7 @@ import { dbErrorToRussian } from "@/lib/errors";
  */
 export function PlusOrder({
   userId,
+  handle,
   priceMonth,
   kaspiLink,
   support,
@@ -24,6 +25,7 @@ export function PlusOrder({
   hadPending,
 }: {
   userId: string;
+  handle: string;
   priceMonth: number;
   kaspiLink: string;
   support: string;
@@ -78,10 +80,26 @@ export function PlusOrder({
             <b>1.</b> Оплати по ссылке Kaspi. Сумму вводишь сам — впиши ровно{" "}
             <b>{amount.toLocaleString("ru-RU")} ₸</b>.
           </div>
-          <div>
-            <b>2.</b> Пришли скриншот оплаты{support ? ` в ${support}` : " в поддержку"} —
-            включим Plus в течение 10 минут.
+          <div className="mt-1">
+            <b>2.</b> Пришли скриншот оплаты{support ? ` в ${support}` : " в поддержку"} и
+            обязательно подпиши свой юзернейм: <b>@{handle}</b>.
           </div>
+        </div>
+
+        {/* Чек приходит от «Бекарыс А.», а в заявках десять человек — без
+            юзернейма не понять, кому включать. Поэтому просим подписать
+            и показываем готовый текст, чтобы его осталось только скопировать. */}
+        <div className="rounded-xl border border-tynysh-line bg-white px-3 py-2.5 text-sm">
+          <div className="mb-1 text-xs font-bold uppercase tracking-wide text-tynysh-muted">
+            Отправь вместе со скриншотом
+          </div>
+          <div className="font-bold">
+            Оплатил Дос Plus, {amount.toLocaleString("ru-RU")} ₸ — @{handle}
+          </div>
+          <p className="mt-1.5 text-xs leading-relaxed text-tynysh-muted">
+            Без юзернейма мы не поймём, кому включать: в чеке будет только твоё
+            имя, а людей с таким именем может быть несколько.
+          </p>
         </div>
 
         {kaspiLink ? (
