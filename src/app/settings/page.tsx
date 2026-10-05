@@ -34,6 +34,9 @@ export default async function SettingsPage() {
         <Link href="/plus" className="block text-tynysh underline">
           Дос Plus
         </Link>
+        <Link href="/install" className="block text-tynysh underline">
+          Поставить на телефон
+        </Link>
         <Link href="/terms" className="block text-tynysh-muted underline">
           Пользовательское соглашение
         </Link>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CHATS_ENABLED } from "@/lib/features";
+import { InstallCard } from "@/components/Pwa";
 import { Avatar } from "@/components/Avatar";
 import { dayKey, dayLabel, formatTime } from "@/lib/chat";
 import { DOS_MAX_INPUT } from "@/lib/dos-config";
@@ -217,6 +218,11 @@ export function DosChat({
           </Link>
         )}
       </header>
+
+      {/* Раньше предложение установить жило в шапке со списком чатов. Чатов
+          нет, и вместе с ними пропало единственное место, где человек об
+          установке узнавал. Карточка закрывается навсегда одной кнопкой. */}
+      <InstallCard />
 
       <div className="flex-1 overflow-y-auto bg-tynysh-bg px-3 py-4">
         {crisis && (
