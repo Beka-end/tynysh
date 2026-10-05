@@ -93,6 +93,17 @@ export function AdminPanel({
         </div>
       )}
 
+      {/* Заявка создаётся нажатием кнопки, а не оплатой: Kaspi нам ничего
+          не сообщает. Если включать Plus всем, у кого появилась заявка,
+          подписку получит бесплатно любой, кто нажал кнопку. */}
+      {tab === "orders" && waiting > 0 && (
+        <p className="mb-2 rounded-xl bg-alarm px-3 py-2 text-xs leading-relaxed text-alarm-text">
+          <b>Заявка — это не оплата.</b> Она появляется, когда человек нажал
+          «Оформить». Включай Plus только после скриншота из Kaspi и сверяй
+          на нём сумму и дату: старый чек присылают чаще, чем кажется.
+        </p>
+      )}
+
       {tab === "orders" && (
         <p className="mb-2 flex items-center justify-between text-xs text-tynysh-muted">
           <span>
