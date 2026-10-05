@@ -24,6 +24,17 @@ SIZES = {
     "public/apple-touch-icon.png": 180,
 }
 
+# Аватарки в телеграме и инстаграме обрезаются в круг. Если скормить им
+# квадрат со скруглёнными углами, углы срежутся и знак станет кривым,
+# поэтому для аватарки рисуем сразу круг.
+ROUND = {"brand/avatar-round.png": 1024}
+
+
+def circle(x, y, size):
+    """Точка внутри круга, вписанного в квадрат?"""
+    r = size / 2
+    return (x - r) ** 2 + (y - r) ** 2 <= r ** 2
+
 
 def rounded_square(x, y, size, radius):
     """Точка внутри квадрата со скруглёнными углами?"""
@@ -34,20 +45,20 @@ def rounded_square(x, y, size, radius):
 
 def letter_t(x, y, size):
     """Буква «t»: стойка, перекладина и загиб вправо внизу."""
-    stem_w = size * 0.115
-    stem_x0 = size * 0.42
+    stem_w = size * 0.098
+    stem_x0 = size * 0.425
     stem_x1 = stem_x0 + stem_w
-    top = size * 0.22
-    bottom = size * 0.70
+    top = size * 0.195
+    bottom = size * 0.715
 
     # перекладина
-    if size * 0.30 <= x <= size * 0.62 and size * 0.36 <= y <= size * 0.36 + stem_w:
+    if size * 0.305 <= x <= size * 0.605 and size * 0.345 <= y <= size * 0.345 + stem_w:
         return True
     # стойка
     if stem_x0 <= x <= stem_x1 and top <= y <= bottom:
         return True
     # загиб: четверть кольца вправо от низа стойки
-    r_out = size * 0.145
+    r_out = size * 0.16
     r_in = r_out - stem_w
     cx, cy = stem_x1, bottom - r_out
     if x >= cx and y >= cy:
@@ -57,7 +68,7 @@ def letter_t(x, y, size):
     return False
 
 
-def render(size):
+def render(size, shape="square"):
     big = size * SS
     radius = big * 0.23
     rows = []
@@ -70,7 +81,12 @@ def render(size):
                 for sx in range(SS):
                     x = px * SS + sx + 0.5
                     y = py * SS + sy + 0.5
-                    if not rounded_square(x, y, big, radius):
+                    inside = (
+                        circle(x, y, big)
+                        if shape == "circle"
+                        else rounded_square(x, y, big, radius)
+                    )
+                    if not inside:
                         continue  # за пределами скруглённого квадрата — прозрачно
                     colour = WHITE if letter_t(x, y, big) else BLUE
                     r += colour[0]
@@ -109,3 +125,7 @@ def write_png(path, rows, size):
 for path, size in SIZES.items():
     write_png(path, render(size), size)
     print("нарисовано", path, f"{size}×{size}")
+
+for path, size in ROUND.items():
+    write_png(path, render(size, shape="circle"), size)
+    print("нарисовано", path, f"{size}×{size}, круглая")
