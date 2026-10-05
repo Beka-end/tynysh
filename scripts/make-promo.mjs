@@ -12,6 +12,7 @@
  */
 import { chromium } from "playwright";
 import { fileURLToPath } from "node:url";
+import fs from "node:fs";
 import path from "node:path";
 
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "promo");
@@ -22,7 +23,12 @@ const JOBS = [
   { name: "poster", width: 794, height: 1123, scale: 2, about: "A4 для печати" },
 ];
 
-const browser = await chromium.launch();
+// На машинах, где Chromium уже лежит рядом (например, в готовом окружении),
+// берём его: иначе playwright требует скачивать свой и падает.
+const preinstalled = process.env.CHROMIUM_PATH || "/opt/pw-browsers/chromium";
+const browser = await chromium.launch(
+  fs.existsSync(preinstalled) ? { executablePath: preinstalled } : {},
+);
 let broken = false;
 
 for (const job of JOBS) {
