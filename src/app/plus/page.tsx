@@ -57,7 +57,7 @@ export default async function PlusPage() {
 
       <h1 className="mb-1 text-2xl font-extrabold">Дос Plus на месяц</h1>
       <p className="mb-5 text-sm leading-relaxed text-tynysh-muted">
-        Чаты и группы бесплатны всегда. Plus — это про разговоры с Досом.
+        Plus — это про разговоры с Досом: сколько их в день и насколько долго он помнит сказанное.
       </p>
 
       <ul className="mb-6 space-y-1.5 text-sm">

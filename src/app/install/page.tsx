@@ -14,8 +14,8 @@ export default function InstallPage() {
         <Link href="/">
           <Logo />
         </Link>
-        <Link href="/chats" className="text-sm text-tynysh-muted">
-          К чатам
+        <Link href="/dos" className="text-sm text-tynysh-muted">
+          К Досу
         </Link>
       </div>
 

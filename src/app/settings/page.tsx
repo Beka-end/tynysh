@@ -14,8 +14,8 @@ export default async function SettingsPage() {
     <main className="mx-auto min-h-screen max-w-md bg-white p-4 md:my-4 md:min-h-[calc(100vh-2rem)] md:rounded-3xl md:shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <Logo />
-        <Link href="/chats" className="text-sm text-tynysh-muted">
-          К чатам
+        <Link href="/dos" className="text-sm text-tynysh-muted">
+          К Досу
         </Link>
       </div>
 

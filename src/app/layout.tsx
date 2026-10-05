@@ -3,7 +3,7 @@ import "./globals.css";
 import { PwaSetup } from "@/components/Pwa";
 
 export const metadata: Metadata = {
-  title: "Tynysh — мессенджер, где есть кому выслушать",
+  title: "Tynysh — есть кому выслушать",
   description:
     "Чаты, группы и поддержка. Дос — помощник, а не врач. Если тяжело прямо сейчас — 150.",
   manifest: "/manifest.webmanifest",

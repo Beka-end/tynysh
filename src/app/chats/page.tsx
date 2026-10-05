@@ -4,13 +4,13 @@ import { rpcErrorToRussian } from "@/lib/errors";
 import { chatName, formatListTime, type ChatOverviewRow } from "@/lib/chat";
 import { AppShell } from "@/components/AppShell";
 import { Avatar } from "@/components/Avatar";
-
+import { CHATS_ENABLED } from "@/lib/features";
+import { redirect } from "next/navigation";
 // Страница всегда считается на сервере: она смотрит на куки с сессией.
 export const dynamic = "force-dynamic";
-
 export default async function ChatsPage() {
+  if (!CHATS_ENABLED) redirect("/dos");
   const { supabase, userId } = await requireUser();
-
   // Профиль и список чатов запрашиваем одновременно, а не друг за другом.
   // Одна функция в базе сразу отдаёт: с кем чат, последнее сообщение и непрочитанные.
   const [{ data: profile }, { data, error }] = await Promise.all([
@@ -23,16 +23,13 @@ export default async function ChatsPage() {
   ]);
   const me = guardProfile(profile);
   const rows = (data ?? []) as ChatOverviewRow[];
-
   return (
     <AppShell meId={me.id} handle={me.handle} active="/chats">
-
       {error && (
         <div className="mx-2 mb-3 rounded-xl bg-alarm px-3 py-2 text-sm text-alarm-text">
           {rpcErrorToRussian(error.code, error.message)}
         </div>
       )}
-
       {(profile as { is_admin?: boolean } | null)?.is_admin && (
         <Link
           href="/admin"
@@ -41,7 +38,6 @@ export default async function ChatsPage() {
           ⚙ Админка
         </Link>
       )}
-
       <Link
         href="/dos"
         className="mb-1 flex w-full items-center gap-3 rounded-xl p-2.5 text-left hover:bg-slate-50"
@@ -59,7 +55,6 @@ export default async function ChatsPage() {
           </div>
         </div>
       </Link>
-
       {rows.length === 0 && !error ? (
         <EmptyChats name={me.name} />
       ) : (
@@ -100,7 +95,6 @@ export default async function ChatsPage() {
     </AppShell>
   );
 }
-
 function EmptyChats({ name }: { name: string }) {
   return (
     <div className="px-6 py-14 text-center">

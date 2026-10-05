@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { CHATS_ENABLED } from "@/lib/features";
 import { Avatar } from "@/components/Avatar";
 import { dayKey, dayLabel, formatTime } from "@/lib/chat";
 import { DOS_MAX_INPUT } from "@/lib/dos-config";
@@ -175,9 +176,13 @@ export function DosChat({
   return (
     <div className="mx-auto flex h-dvh max-w-md flex-col bg-white">
       <header className="flex items-center gap-2 border-b border-violet-100 px-2 py-3">
-        <Link href="/chats" className="px-1 text-2xl leading-none opacity-60" title="Назад">
-          ‹
-        </Link>
+        {/* Когда чатов нет, уходить отсюда некуда — разговор с Досом и есть
+            главный экран. Стрелка «назад» вела бы в пустоту. */}
+        {CHATS_ENABLED && (
+          <Link href="/chats" className="px-1 text-2xl leading-none opacity-60" title="Назад">
+            ‹
+          </Link>
+        )}
         <Avatar name="Дос" isAI size={40} />
         <div className="min-w-0 flex-1">
           <div className="truncate font-bold">Дос</div>
@@ -200,6 +205,17 @@ export function DosChat({
         >
           Очистить
         </button>
+        {/* Без чатов это единственная дорога к настройкам, документам
+            и выходу из аккаунта. */}
+        {!CHATS_ENABLED && (
+          <Link
+            href="/settings"
+            title="Настройки"
+            className="rounded-full px-2 py-1 text-sm text-tynysh-muted hover:bg-tynysh-soft"
+          >
+            ⚙
+          </Link>
+        )}
       </header>
 
       <div className="flex-1 overflow-y-auto bg-tynysh-bg px-3 py-4">
@@ -387,7 +403,7 @@ export function DosChat({
             </button>
             <p className="mt-2 text-[11px] leading-relaxed opacity-50">
               Оплата ручная: платишь по ссылке Kaspi и присылаешь скриншот.
-              Обычные чаты и группы бесплатны всегда. Если тебе плохо прямо сейчас — звони 150, это
+              Если тебе плохо прямо сейчас — звони 150, это
               бесплатно и без всякой подписки.
             </p>
           </div>

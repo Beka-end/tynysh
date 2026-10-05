@@ -32,7 +32,7 @@ export default async function LoginPage({
       <div className="w-full max-w-sm">
         <Logo big />
         <p className="mt-1 mb-8 text-lg text-tynysh-muted">
-          Мессенджер, где есть кому выслушать.
+          Есть кому выслушать. В любое время.
         </p>
 
         {error && (

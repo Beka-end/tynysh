@@ -5,13 +5,13 @@ import { membersLabel, type ChatOverviewRow } from "@/lib/chat";
 import { AppShell } from "@/components/AppShell";
 import { Avatar } from "@/components/Avatar";
 import { NewGroup } from "./NewGroup";
-
+import { CHATS_ENABLED } from "@/lib/features";
+import { redirect } from "next/navigation";
 // Страница всегда считается на сервере: она смотрит на куки с сессией.
 export const dynamic = "force-dynamic";
-
 export default async function GroupsPage() {
+  if (!CHATS_ENABLED) redirect("/dos");
   const { supabase, userId } = await requireUser();
-
   const [{ data: profile }, { data, error }] = await Promise.all([
     profileQuery(supabase, userId),
     supabase.rpc("chat_overview"),
@@ -20,17 +20,14 @@ export default async function GroupsPage() {
   const groups = ((data ?? []) as ChatOverviewRow[]).filter(
     (row) => row.chat_type === "group",
   );
-
   return (
     <AppShell meId={me.id} handle={me.handle} active="/groups">
       <NewGroup meId={me.id} />
-
       {error && (
         <div className="mx-2 mt-3 rounded-xl bg-alarm px-3 py-2 text-sm text-alarm-text">
           {rpcErrorToRussian(error.code, error.message)}
         </div>
       )}
-
       {groups.length === 0 ? (
         <p className="px-6 py-10 text-center text-sm leading-relaxed text-tynysh-muted">
           Групп пока нет. Группа — это чат на несколько человек: класс, команда,

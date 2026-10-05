@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { CHATS_ENABLED } from "@/lib/features";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Главная — это «регулировщик»: смотрит, кто пришёл, и отправляет куда нужно.
- * Не вошёл → /login. Вошёл, но нет профиля → /welcome. Всё есть → /chats.
+ * Не вошёл → /login. Вошёл, но нет профиля → /welcome. Всё есть → к Досу.
  */
 export default async function Home() {
   if (!isSupabaseConfigured) redirect("/login");
@@ -27,5 +28,5 @@ export default async function Home() {
     .maybeSingle();
 
   if (!profile) redirect("/welcome");
-  redirect("/chats");
+  redirect(CHATS_ENABLED ? "/chats" : "/dos");
 }
